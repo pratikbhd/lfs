@@ -1,0 +1,19 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build lfs",
+            "type": "shell",
+            "command": "g++",
+            "args" :[
+                "-g", "-o", "lfs", "-I", "headers", "src/hello.cpp", "src/person.cpp"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
