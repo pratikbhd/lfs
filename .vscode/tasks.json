@@ -4,11 +4,35 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build lfs",
+            "label": "build mklfs",
             "type": "shell",
             "command": "g++",
             "args" :[
-                "-g", "-o", "lfs", "-I", "headers", "src/hello.cpp", "src/person.cpp"
+                "-g", "-o", "mklfs", "-I", "headers", "src/flash/mklfs.cpp", "src/flash/segment.cpp", "src/flash/flash.c"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "build loglayer",
+            "type": "shell",
+            "command": "g++",
+            "args" :[
+                "-g", "-o", "loglayer", "-I", "headers", "src/log/loglayer.cpp", "src/flash/flash.c"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "build cpptest",
+            "type": "shell",
+            "command": "g++",
+            "args" :[
+                "-g", "-o", "cpptest", "-I", "headers", "src/cpp-test/hello.cpp", "src/cpp-test/person.cpp"
             ],
             "group": {
                 "kind": "build",
