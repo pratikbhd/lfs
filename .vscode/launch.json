@@ -45,6 +45,26 @@
             "preLaunchTask": "build mklfs"
         },
         {
+            "name": "(gdb) lfsck",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/lfsck",
+            "args": ["flash_test", "log"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "build lfsck"
+        },
+        {
             "name": "(gdb) cpp-test",
             "type": "cppdbg",
             "request": "launch",

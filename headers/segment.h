@@ -1,9 +1,11 @@
+#pragma once
 #include <string>
+#include "json.hpp"
 
 /**
  * log offsets
  */
-#define LOG_INFO_OFFSET 0
+#define LOG_SUPERBLOCK_OFFSET 0
 #define LOG_CP1_OFFSET 1
 #define LOG_CP2_OFFSET 2
 #define LOG_IFILE_OFFSET 3
@@ -34,4 +36,11 @@ class SuperBlock {
         //char *segmentUsage;     // segment usage
         // int usedSegments;       // available segments
         SuperBlock() = default;
+
+        // void to_json(json& j, const SuperBlock& p);
+        // void from_json(const json& j, SuperBlock& p);
 };
+
+void to_json(nlohmann::json& j, const SuperBlock& p);
+
+void from_json(const nlohmann::json& j, SuperBlock& p);

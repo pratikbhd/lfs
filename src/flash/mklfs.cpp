@@ -45,19 +45,6 @@ static struct option long_options[] = {
     {NULL, 0, NULL, 0}
 };
 
-
-void lfs_test(Flash flash_handle){
-    char readBuf[FLASH_SECTOR_SIZE+2];
-    SuperBlock *sb = (SuperBlock*) std::malloc(sizeof(SuperBlock)+1);
-    int res = Flash_Read(flash_handle, LOG_INFO_OFFSET, 1, readBuf);
-    if (res) {
-        std::cout <<"INITLOG READ FAIL" << std::endl;
-    }
-    std::memcpy(sb, readBuf, sizeof(SuperBlock)+1);
-    //log_print_info(lInfo);
-    std::cout << (*sb).segmentCount;
-}
-
 void lfs_init(Flash flash_handle, SuperBlock sb){
     int er = Flash_Erase(flash_handle, 0, sb.blockCount);
     if (er)
@@ -66,7 +53,7 @@ void lfs_init(Flash flash_handle, SuperBlock sb){
     char *buffer = (char*)std::malloc(sizeof(SuperBlock)+ 1);
     memset(buffer, 0, sizeof(SuperBlock)+ 1);
     std::memcpy(buffer, &sb, sizeof(SuperBlock)+1);
-    int res = Flash_Write(flash_handle, LOG_INFO_OFFSET, 1, buffer);
+    int res = Flash_Write(flash_handle, LOG_SUPERBLOCK_OFFSET, 1, buffer);
     if (res)
         std::cout << "Error writing log info" << std::endl;
 
@@ -167,7 +154,7 @@ int main(int argc, char** argv)
     }
 
     // Create the LFS file system
-    //lfs_create(no_of_segments, blocks_per_segment, wear_limit, file_name);
+    lfs_create(no_of_segments, blocks_per_segment, wear_limit, file_name);
 
     unsigned int blocks;
     auto flash = Flash_Open(file_name, 0, &blocks);
@@ -175,7 +162,6 @@ int main(int argc, char** argv)
     sb.segmentCount = no_of_segments;
     sb.blockCount = blocks;
 
-    //lfs_init(flash, sb);
-    lfs_test(flash);
+    lfs_init(flash, sb);
     Flash_Close(flash);
 }

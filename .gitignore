@@ -5,3 +5,7 @@ mklfs
 loglayer
 
 flash_test
+
+\.vscode/settings\.json
+
+lfsck

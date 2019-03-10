@@ -16,6 +16,18 @@
             }
         },
         {
+            "label": "build lfsck",
+            "type": "shell",
+            "command": "g++",
+            "args" :[
+                "-g", "-o", "lfsck", "-I", "headers", "src/flash/lfsck.cpp", "src/flash/segment.cpp", "src/flash/flash.c"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
             "label": "build loglayer",
             "type": "shell",
             "command": "g++",
