@@ -53,6 +53,43 @@ struct log_address {
 };
 
 /**
+ * The inode structure used by the file system.
+ * 
+ * Members:
+ * -- int inum: 
+ *        a unique identifier for each inode. The ifile inum has inode -1. Every other inode is non-negative and
+ *        acts as an index for the inode in the ifile
+ *
+ * -- char fileType: 
+ *        The type of file. This provides information about what can be done to/with a file.
+ *            NO_FILE if the inode is not being used.
+ *            PLAIN_FILE for regular files containing unstructered data.
+ *            DIRECTORY if the inode is associated with a directory.
+ *            SYM_LINK if the inode is associated with a symbolic link
+ *            IFILE if this is the inode of the ifile, with inum -1.
+ *
+ * -- size_t fileSize: 
+ *        The total length of the file in bytes. This is non-negative and bounded by FILE_MAX_SIZE.
+ *
+ * -- uint32_t hardLinkCount:
+ *        The number of hardlinks to the inodes file. Non-negative. If 0, then this inode does not have a file.
+ *  
+ * -- uint32_t block_pointers[4]: 
+ *        An array of pointers to the first 4 blocks of the file in the log.
+ *
+ * -- uint32_t indirectBlock:
+ *        A pointer to a block in the log, which stores more pointers to the file. 
+ */
+class Inode {
+    int      inum;
+    char     fileType;
+    size_t   fileSize;
+    uint32_t hardLinkCount;
+    log_address block_pointers[4];
+    log_address indirect_block;
+};
+
+/**
  * Checkpoint reference.
  */
 struct checkpoint {
