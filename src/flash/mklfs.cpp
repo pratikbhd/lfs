@@ -45,7 +45,7 @@ static struct option long_options[] = {
     {NULL, 0, NULL, 0}
 };
 
-void lfs_init(Flash flash_handle, SuperBlock sb){
+void lfs_init_superblock(Flash flash_handle, SuperBlock sb){
     int er = Flash_Erase(flash_handle, 0, sb.blockCount);
     if (er)
         fprintf(stderr, "ERASE ZERO SECTOR FAIL!\n");
@@ -58,10 +58,28 @@ void lfs_init(Flash flash_handle, SuperBlock sb){
         std::cout << "Error writing log info" << std::endl;
 
     std::free(buffer);
-    // Segment s1("hello", 10);
-    // json j;
-    // j["size"] = s1.size;
-    // j["data"] = s1.data;
+}
+
+void lfs_init_segmentsummary(Flash flash_handle, SuperBlock sb){
+    for(int i=1; i < sb.segmentCount; i++) {
+        block_usage b[sb.blocksPerSegment];
+        int j = 0;
+        while (j < (sizeof(b)/sb.bytesPerBlock) + 1) {
+            b[j].use = static_cast<int>(usage::INUSE);
+            b[j].inum = static_cast<int>(usage::NOINUM);
+            j++;
+        }
+        for(; j < sb.blocksPerSegment; j++) {
+            b[j].use = static_cast<int>(usage::FREE);
+            b[j].inum = static_cast<int>(usage::NOINUM);
+        }
+        int offset = i*((sb.sectorsPerBlock)*(sb.blocksPerSegment));
+        std::cout << "writing segment summary at offset:" << offset << std::endl;
+        int res = Flash_Write(flash_handle, offset, sb.sectorsPerBlock, b);
+        if (res) {
+            std::cout << "MKLFS summary map failed: " << offset << std::endl;
+        }
+    }
 }
 
 bool lfs_create(long no_of_segments,
@@ -87,22 +105,6 @@ bool lfs_create(long no_of_segments,
         std::cout << "Failure! Exiting now...\n";
         exit(EXIT_FAILURE);
     }
-}
-
-
-bool lfs_write_test(Flash flash_handle, int sector, int offset){
-    return true;
-    int rc;
-    std::string opt1 = "hello";
-    rc = Flash_Write(flash_handle, sector, offset, &opt1);
-    std::cout << "the write" << opt1 << std::endl;
-}
-
-bool lfs_read_test(Flash flash_handle, int sector, int offset){
-    //return true;
-    char input[2048];
-    int rc = Flash_Read(flash_handle, sector, offset, &input);
-    std::cout << "the read" << input << std::endl;
 }
 
 int main(int argc, char** argv)
@@ -158,10 +160,8 @@ int main(int argc, char** argv)
 
     unsigned int blocks;
     auto flash = Flash_Open(file_name, 0, &blocks);
-    SuperBlock sb;
-    sb.segmentCount = no_of_segments;
-    sb.blockCount = blocks;
-
-    lfs_init(flash, sb);
+    SuperBlock sb(no_of_segments, blocks_per_segment, blocks, wear_limit);
+    lfs_init_superblock(flash, sb);
+    lfs_init_segmentsummary(flash, sb);
     Flash_Close(flash);
 }

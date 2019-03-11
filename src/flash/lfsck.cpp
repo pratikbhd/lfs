@@ -4,19 +4,6 @@
 #include "flash.h"
 using json = nlohmann::json;
 
-// json GetSuperBlock(Flash flash_handle){
-//     char buffer[FLASH_SECTOR_SIZE+2];
-//     SuperBlock *sb = (SuperBlock*) std::malloc(sizeof(SuperBlock)+1);
-//     int res = Flash_Read(flash_handle, LOG_SUPERBLOCK_OFFSET, 1, buffer);
-//     if (res) {
-//         std::cout <<"SuperBlock READ FAIL" << std::endl;
-//     }
-//     std::memcpy(sb, buffer, sizeof(SuperBlock)+1);
-//     //log_print_info(lInfo);
-//     json json_sb = *sb;
-//     return json_sb;
-// }
-
 json GetSuperBlock(Flash flash_handle){
     char buffer[FLASH_SECTOR_SIZE+2];
     SuperBlock *sb = new SuperBlock();
