@@ -32,6 +32,7 @@
 //#include <stdbool.h>
 #include "flash.h"
 #include "segment.h"
+#include "log.h"
 #include "json.hpp"
 #include <string>
 #include <iostream>
@@ -82,6 +83,29 @@ void lfs_init_segmentsummary(Flash flash_handle, SuperBlock sb){
     }
 }
 
+void lfs_init_checkpoint(Flash flash_handle, Log l){
+    Checkpoint check_point(l.GetLogAddress(1, 1), 0);
+    char *buffer = (char*)std::malloc(sizeof(Checkpoint)+ 1);
+
+    //Write First Checkpoint
+    memset(buffer, 0, sizeof(Checkpoint)+ 1);
+    memcpy(buffer, &check_point, sizeof(Checkpoint)+1);
+    int res = Flash_Write(flash_handle, LOG_CP1_OFFSET, 1, buffer);
+    if (res) {
+        std::cout << "MKLFS WRITE FAIL:" << res << std::endl;
+    }
+    
+    //Write Second Checkpoint
+    memset(buffer, 0, sizeof(Checkpoint)+ 1);
+    memcpy(buffer, &check_point, sizeof(Checkpoint)+1);
+    res = Flash_Write(flash_handle, LOG_CP2_OFFSET, 1, buffer);
+    if (res) {
+        std::cout << "MKLFS WRITE FAIL" << std::endl;
+    }
+
+    std::free(buffer);
+}
+
 bool lfs_create(long no_of_segments,
                 long blocks_per_segment,
                 long wear_limit,
@@ -113,6 +137,7 @@ int main(int argc, char** argv)
     // Initializing the default values for the parameters
 	long no_of_segments = 1024;
 	long blocks_per_segment = 32;
+    long sectors_per_block = 2;
     long wear_limit = 1000;
     char* file_name;
 
@@ -123,13 +148,10 @@ int main(int argc, char** argv)
     int option_index = 0;
 
     // Figure out which flags have been explicitly stated
-    while ((ch = getopt_long(argc, argv, "b:l:w:", long_options, &option_index)) != -1)
+    while ((ch = getopt_long(argc, argv, "b:l:w:s:", long_options, &option_index)) != -1)
     {
-        switch (ch) {
-            
-            // TODO: Handle case 0 as well??
+        switch (ch) {            
             case 'b':
-            // TODO: Do we do checks on individual flags to see if value exceeds 65536?
                 blocks_per_segment = atol(optarg);
                 break;
 
@@ -137,9 +159,9 @@ int main(int argc, char** argv)
                 no_of_segments = atol(optarg);
                 break;
            
-            // case 's':
-            //     sector = atol(optarg);
-            //     break;
+            case 's':
+                sectors_per_block = atol(optarg);
+                break;
             
             case 'w':
                 wear_limit = atol(optarg);
@@ -149,7 +171,7 @@ int main(int argc, char** argv)
                 break;
 
             default:
-                std::cout << "Invalid argument\n";
+                std::cout << "Invalid input arguments\n";
                 abort ();
                 break;         
         }
@@ -160,8 +182,13 @@ int main(int argc, char** argv)
 
     unsigned int blocks;
     auto flash = Flash_Open(file_name, 0, &blocks);
-    SuperBlock sb(no_of_segments, blocks_per_segment, blocks, wear_limit);
-    lfs_init_superblock(flash, sb);
-    lfs_init_segmentsummary(flash, sb);
+    Log log = Log();
+    log.super_block = SuperBlock(no_of_segments, blocks_per_segment, sectors_per_block, blocks, wear_limit);
+    lfs_init_superblock(flash, log.super_block);
+    lfs_init_segmentsummary(flash, log.super_block);
+    lfs_init_checkpoint(flash, log);
     Flash_Close(flash);
+
+    std::cout<< "MKLFS Complete!" << std::endl << "Press ENTER key to quit!";
+    std::cin.get();
 }

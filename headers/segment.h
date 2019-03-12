@@ -23,20 +23,20 @@ class Segment {
 
 class SuperBlock {
     public:
-        int segmentCount;       // number of segments in LFS
-        int blockCount;         // number of block in LFS
-        int sectorCount;        // number of sectors in LFS
-        int blocksPerSegment;   // blocks
-        int sectorsPerSegment;  // sectors
-        int bytesPerSegment;    // bytes
-        int sectorsPerBlock;    // segments
-        int bytesPerBlock;      // bytes
-        int bytesPerSector;     // bytes
-        int wearLimit;          // wear limit
+        unsigned int segmentCount;       // number of segments in LFS
+        unsigned int blockCount;         // number of block in LFS
+        unsigned int sectorCount;        // number of sectors in LFS
+        unsigned int blocksPerSegment;   // blocks
+        unsigned int sectorsPerSegment;  // sectors
+        unsigned int bytesPerSegment;    // bytes
+        unsigned int sectorsPerBlock;    // segments
+        unsigned int bytesPerBlock;      // bytes
+        unsigned int bytesPerSector;     // bytes
+        unsigned int wearLimit;          // wear limit
         //char *segmentUsage;     // segment usage
-        int usedSegments;       // available segments
+        unsigned int usedSegments;       // available segments
 
-        SuperBlock(int no_of_segments, int blocks_per_segment, int blocks, int wear_limit);
+        SuperBlock(unsigned int no_of_segments, unsigned int blocks_per_segment, unsigned int sectors_per_block, unsigned int blocks, unsigned int wear_limit);
         SuperBlock() = default;
 };
 
@@ -48,8 +48,8 @@ void from_json(const nlohmann::json& j, SuperBlock& p);
  * Internal log address
  */
 struct log_address {
-    int segmentNumber;
-    int blockOffset;
+    unsigned int segmentNumber;
+    unsigned int blockOffset;
 };
 
 /**
@@ -81,27 +81,32 @@ struct log_address {
  *        A pointer to a block in the log, which stores more pointers to the file. 
  */
 class Inode {
-    int      inum;
-    char     fileType;
-    size_t   fileSize;
-    uint32_t hardLinkCount;
-    log_address block_pointers[4];
-    log_address indirect_block;
+    public:
+        unsigned int      inum;
+        char     fileType;
+        size_t   fileSize;
+        unsigned int hardLinkCount;
+        log_address block_pointers[4];
+        log_address indirect_block;
+        Inode() = default;
 };
 
 /**
- * Checkpoint reference.
+ * Checkpoint.
  */
-struct checkpoint {
-    log_address address;
-    char val;
+class Checkpoint {
+    public:
+        log_address address;
+        unsigned int time;
+        Checkpoint(log_address address, unsigned int time);
+        Checkpoint() = default;
 };
 
 /**
  * Segment Summary Record
  */
 struct block_usage {
-    int inum;
+    unsigned int inum;
     char use;
 };
 

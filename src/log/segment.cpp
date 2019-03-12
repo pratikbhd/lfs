@@ -17,16 +17,28 @@ void from_json(const nlohmann::json& j, SuperBlock& p) {
         j.at("blockCount").get_to(p.blockCount);
 }
 
-SuperBlock::SuperBlock(int no_of_segments, int blocks_per_segment, int blocks, int wear_limit){
+SuperBlock::SuperBlock(unsigned int no_of_segments, unsigned int blocks_per_segment, unsigned int sectors_per_block, unsigned int blocks, unsigned int wear_limit){
+
+        //Flash level info
     segmentCount = no_of_segments;
     blockCount = blocks;
-    sectorCount = FLASH_SECTORS_PER_BLOCK * blocks;
-    blocksPerSegment = blocks_per_segment;
-    sectorsPerSegment = FLASH_SECTORS_PER_BLOCK * blocks_per_segment;
-    bytesPerSegment = FLASH_SECTOR_SIZE * FLASH_SECTORS_PER_BLOCK * blocks_per_segment;
-    sectorsPerBlock = FLASH_SECTORS_PER_BLOCK;
-    bytesPerBlock = FLASH_SECTOR_SIZE * FLASH_SECTORS_PER_BLOCK;
-    bytesPerSector = FLASH_SECTOR_SIZE;
+    sectorCount = sectors_per_block * blocks;
     wearLimit = wear_limit;
     usedSegments = 1; //superblock uses one segment when initialized for the first time.
+
+    //Segment level info
+    blocksPerSegment = blocks_per_segment;
+    sectorsPerSegment = sectors_per_block * blocks_per_segment;
+    bytesPerSegment = FLASH_SECTOR_SIZE * sectors_per_block * blocks_per_segment;
+
+    //Block level info
+    sectorsPerBlock = sectors_per_block;
+    bytesPerBlock = FLASH_SECTOR_SIZE * sectors_per_block;
+
+    //Sector level info
+    bytesPerSector = FLASH_SECTOR_SIZE;
+}
+
+Checkpoint::Checkpoint(log_address address, unsigned int time): address(address), time(time){
+
 }
