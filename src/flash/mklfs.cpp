@@ -54,9 +54,10 @@ void lfs_init_superblock(Flash flash_handle, SuperBlock sb){
     char *buffer = (char*)std::malloc(sizeof(SuperBlock)+ 1);
     memset(buffer, 0, sizeof(SuperBlock)+ 1);
     std::memcpy(buffer, &sb, sizeof(SuperBlock)+1);
+    std::cout << "writing superblock at offset: "<< LOG_SUPERBLOCK_OFFSET << std::endl;
     int res = Flash_Write(flash_handle, LOG_SUPERBLOCK_OFFSET, 1, buffer);
     if (res)
-        std::cout << "Error writing log info" << std::endl;
+        std::cout << "Error writing superblock info" << std::endl;
 
     std::free(buffer);
 }
@@ -83,13 +84,14 @@ void lfs_init_segmentsummary(Flash flash_handle, SuperBlock sb){
     }
 }
 
-void lfs_init_checkpoint(Flash flash_handle, Log l){
-    Checkpoint check_point(l.GetLogAddress(1, 1), 0);
+void lfs_init_checkpoint(Flash flash_handle, Log *l){
+    Checkpoint check_point((*l).GetLogAddress(1, 1), 0);
     char *buffer = (char*)std::malloc(sizeof(Checkpoint)+ 1);
 
     //Write First Checkpoint
     memset(buffer, 0, sizeof(Checkpoint)+ 1);
     memcpy(buffer, &check_point, sizeof(Checkpoint)+1);
+    std::cout << "writing checkpoint one at offset: "<< LOG_CP1_OFFSET << std::endl;
     int res = Flash_Write(flash_handle, LOG_CP1_OFFSET, 1, buffer);
     if (res) {
         std::cout << "MKLFS WRITE FAIL:" << res << std::endl;
@@ -98,6 +100,7 @@ void lfs_init_checkpoint(Flash flash_handle, Log l){
     //Write Second Checkpoint
     memset(buffer, 0, sizeof(Checkpoint)+ 1);
     memcpy(buffer, &check_point, sizeof(Checkpoint)+1);
+    std::cout << "writing checkpoint two at offset: "<< LOG_CP2_OFFSET << std::endl;
     res = Flash_Write(flash_handle, LOG_CP2_OFFSET, 1, buffer);
     if (res) {
         std::cout << "MKLFS WRITE FAIL" << std::endl;
@@ -185,8 +188,8 @@ int main(int argc, char** argv)
     Log log = Log();
     log.super_block = SuperBlock(no_of_segments, blocks_per_segment, sectors_per_block, blocks, wear_limit);
     lfs_init_superblock(flash, log.super_block);
+    lfs_init_checkpoint(flash, &log);
     lfs_init_segmentsummary(flash, log.super_block);
-    lfs_init_checkpoint(flash, log);
     Flash_Close(flash);
 
     std::cout<< "MKLFS Complete!" << std::endl << "Press ENTER key to quit!";

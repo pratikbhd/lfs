@@ -1,4 +1,3 @@
-#pragma once
 #include "flash.h"
 #include "segment.h"
 #include "json.hpp"
