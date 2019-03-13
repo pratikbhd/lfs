@@ -8,7 +8,8 @@
             "type": "shell",
             "command": "g++",
             "args" :[
-                "-g", "-o", "mklfs", "-I", "headers", "src/flash/mklfs.cpp", "src/log/log.cpp", "src/log/segment.cpp", "src/flash/flash.c"
+                "-g", "-o", "mklfs", "-I", "headers", "src/flash/mklfs.cpp", 
+                "src/log/log.cpp", "src/log/segment.cpp", "src/log/superblock.cpp", "src/flash/flash.c"
             ],
             "group": {
                 "kind": "build",
@@ -20,7 +21,8 @@
             "type": "shell",
             "command": "g++",
             "args" :[
-                "-g", "-o", "lfsck", "-I", "headers", "src/flash/lfsck.cpp", "src/log/log.cpp", "src/log/segment.cpp", "src/flash/flash.c"
+                "-g", "-o", "lfsck", "-I", "headers", "src/flash/lfsck.cpp", 
+                "src/log/log.cpp", "src/log/segment.cpp", "src/log/superblock.cpp", "src/flash/flash.c"
             ],
             "group": {
                 "kind": "build",

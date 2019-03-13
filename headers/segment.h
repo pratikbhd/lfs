@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <memory>
 #include "json.hpp"
 
 /**
@@ -12,13 +13,13 @@
 
 class Segment {
     private:
-        long segment_size_bytes;
-        std::string data;
+        unsigned int bytesPerSegment;
+        unsigned int segmentNumber;
     public:
-        int size;
-        Segment(std::string data, int size);
+        std::shared_ptr<char> data;
+        Segment(unsigned int bytes_per_segment, unsigned int segmentNumber);
         Segment() = default;
-        char* GetData();
+        unsigned int GetSegmentNumber();
 };
 
 class SuperBlock {
@@ -110,8 +111,12 @@ struct block_usage {
     char use;
 };
 
+void to_json(nlohmann::json& j, const block_usage& p);
+
+void from_json(const nlohmann::json& j, block_usage& p);
+
 enum class usage {
-    FREE,
-    INUSE,
-    NOINUM = -1
+    FREE = -2,
+    INUSE = 5,
+    NOINUM = 0
 };
