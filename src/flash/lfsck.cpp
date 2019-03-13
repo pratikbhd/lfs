@@ -45,9 +45,10 @@ int main (int argc, char **argv)
         unsigned int blocks;
         log.flash = Flash_Open(argv[1], 0, &blocks);
         status["superblock"] = GetSuperBlock(log.flash, &log);
+        log.InitializeCache();
         status["segment_summary_block"] = GetSegmentSummaryBlocks(log.flash, &log);
         Flash_Close(log.flash);
-    }else if(strcmp(argv[2], "file")==0)
+    } else if(strcmp(argv[2], "file")==0)
         //TODO
         ;
     else
