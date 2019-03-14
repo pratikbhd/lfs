@@ -47,6 +47,27 @@ log_address Log::getNextFreeBlock(log_address current){
     return current;
 }
 
+log_address Log::getNewLogEnd(){
+    block_usage b = {0,static_cast<char>(usage::INUSE)};
+    log_address finder = log_end_address;
+
+    while (b.use == static_cast<char>(usage::INUSE)) {
+        finder = getNextFreeBlock(finder);
+        //Getting a block in a new segment will force flushing the current segment to flash.
+        //Thus it is not necessary to flush a segment again in checkpoint, 
+        //But we still do it as of now to maintain semantics of the checkpoint operation.
+        b = GetBlockUsageRecord(finder); 
+    }
+
+    if (log_end_address.segmentNumber != finder.segmentNumber){
+        operation_count = max_operations; //force the checkpoint block to flash
+    }
+
+    log_end_address = finder;
+    checkpoint();    
+    return log_end_address;
+}
+
 void Log::checkpoint() {
     operation_count++;
     if(operation_count < max_operations) {
@@ -158,7 +179,6 @@ void Log::Write(log_address address, int length, char *buffer) {
 
 //TODO:
 //Internal:
-//log_get_next_address()
 //Required by file layer:
 //log_free
 //log_set_inode_addr
@@ -170,6 +190,7 @@ void Log::Write(log_address address, int length, char *buffer) {
 //log_write -> Write
 //log_get_higher_addr() -> getNextFreeBlock
 //log_checkpoint_update() -> checkpoint()
+//log_get_next_address() -> getNewLogEnd
 //Required by file layer:
 //log_create_addr -> GetLogAddress
 //log_read -> Read

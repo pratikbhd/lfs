@@ -13,6 +13,7 @@ class Log {
 
         unsigned int summaryBlockSize();
         log_address getNextFreeBlock(log_address current);
+        log_address getNewLogEnd();
         //Trigger a checkpoint to flash.
         void checkpoint();
     public:
