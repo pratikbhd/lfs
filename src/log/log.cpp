@@ -46,7 +46,7 @@ block_usage Log::GetBlockUsage(log_address address) {
     return b;
 }
 
-void Log::Read (log_address address, int length, char *buffer) {
+void Log::Read(log_address address, int length, char *buffer) {
     unsigned int offsetBytes = super_block.bytesPerBlock * address.blockOffset;
     if (offsetBytes + length > super_block.bytesPerSegment)
         throw "Log::Read() - Cannot read more than a segment! - " + (offsetBytes + length);
@@ -99,9 +99,51 @@ void Log::Free(log_address address){
     memset((*log_end).data + offsetBytes, 0, super_block.bytesPerBlock);
 }
 
+bool Log::UpdateInode(Inode *i, int index, log_address address) {
+    block_usage b;
+    b.inum = (*i).inum;
+    b.use = static_cast<char>(usage::INUSE);
+
+    if(index < 0) {
+        return false;
+    } else if(index < 4) {
+        if((*i).block_pointers[index].segmentNumber > 0) {
+            resetBlockUsage((*i).block_pointers[index]);
+        }
+        (*i).block_pointers[index] = address;
+    } else {
+        char data[super_block.bytesPerBlock];
+        unsigned int offsetBytes = (index - 4) * sizeof(log_address);
+        if (offsetBytes + sizeof(log_address) > super_block.bytesPerBlock)
+            throw "Log::UpdateInode - the indirect block pointer data exceeded a block size. Not supported as of now.";
+
+        if((*i).indirect_block.segmentNumber > 0) {
+            Read((*i).indirect_block, super_block.bytesPerBlock, data);
+
+            resetBlockUsage((*i).indirect_block);
+            (*i).indirect_block = getNewLogEnd();
+
+            log_address old = {0,0};
+            memcpy(&old, data+offsetBytes, sizeof(log_address));
+            resetBlockUsage(old);
+        } else {
+            (*i).indirect_block = getNewLogEnd();
+        }
+
+        memcpy((data + offsetBytes), &address, sizeof(log_address));
+        //write back indirect block at the log end.
+        Write((*i).indirect_block, super_block.bytesPerBlock, data);
+        //update block usage of indirect block at log end.
+        setBlockUsage((*i).indirect_block, b);
+    }
+
+    //update block usage of new block pointer of inode in flash
+    setBlockUsage(address, b);
+    return true;
+}
+
 //TODO:
 //Required by file layer:
-//log_set_inode_addr
 //log_get_inode_addr
 //log_write_inode -> write entire file with inode
 //
@@ -115,6 +157,7 @@ void Log::Free(log_address address){
 //log_get_next_address() -> getNewLogEnd
 //
 //Required by file layer:
+//log_set_inode_addr -> UpdateInode()
 //log_free -> Free()
 //log_create_addr -> GetLogAddress()
 //log_read -> Read()
@@ -122,3 +165,4 @@ void Log::Free(log_address address){
 //TODO:
 //Log::Read -> Should support caching recently read segments. A round robin array should suffice.
 //Log::Write -> should report wear and callers should handle this.
+//Log::UpdateInode -> Should handle large files whose indirect block pointer list can exceed a block. Traverse block pointer list recursively. (low priority, can handle upto 1024 bytes of indirect blocks)
