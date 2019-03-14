@@ -166,8 +166,8 @@ block_usage Log::GetBlockUsage(log_address address) {
 
 void Log::Read (log_address address, int length, char *buffer) {
     unsigned int offsetBytes = super_block.bytesPerBlock * address.blockOffset;
-    if (offsetBytes > super_block.bytesPerSegment)
-        throw "Log::Read() - Cannot read more than a segment! - " + offsetBytes;
+    if (offsetBytes + length > super_block.bytesPerSegment)
+        throw "Log::Read() - Cannot read more than a segment! - " + (offsetBytes + length);
 
     /*  Update Log End segment */
     if((*log_end).GetSegmentNumber() != address.segmentNumber) {
@@ -182,8 +182,8 @@ void Log::Read (log_address address, int length, char *buffer) {
 
 void Log::Write(log_address address, int length, char *buffer) {
     unsigned int offsetBytes = super_block.bytesPerBlock * address.blockOffset;
-    if (offsetBytes > super_block.bytesPerSegment)
-        throw "Log::Write() - Cannot write more than a segment! - " + offsetBytes;
+    if (offsetBytes + length > super_block.bytesPerSegment)
+        throw "Log::Write() - Cannot write more than a segment! - " + (offsetBytes + length);
 
     //TODO handle Block wear.
     unsigned int w = 0;
@@ -201,12 +201,25 @@ void Log::Write(log_address address, int length, char *buffer) {
     memcpy((*log_end).data + offsetBytes, buffer, length);
 }
 
+void Log::Free(log_address address){
+    unsigned int offsetBytes = super_block.bytesPerBlock * address.blockOffset;
+    if (offsetBytes + super_block.bytesPerBlock > super_block.bytesPerSegment)
+        throw "Log::Free() - block offset is out of bounds of segment! - " + address.blockOffset;
+
+    resetBlockUsage(address);
+
+    /* blocks to be freed should be loaded to main memory */
+    if(!(*log_end).GetSegmentNumber() != address.segmentNumber) {
+        (*log_end).Flush();
+        (*log_end).Load(address.segmentNumber);
+    }
+    
+    memset((*log_end).data + offsetBytes, 0, super_block.bytesPerBlock);
+}
+
 
 //TODO:
-//Internal:
-//log_cache_free
 //Required by file layer:
-//log_free
 //log_set_inode_addr
 //log_get_inode_addr
 //log_write_inode -> write entire file with inode
@@ -221,8 +234,9 @@ void Log::Write(log_address address, int length, char *buffer) {
 //log_get_next_address() -> getNewLogEnd
 //
 //Required by file layer:
-//log_create_addr -> GetLogAddress
-//log_read -> Read
+//log_free -> Free()
+//log_create_addr -> GetLogAddress()
+//log_read -> Read()
 //
 //TODO:
 //Log::Read -> Should support caching recently read segments. A round robin array should suffice.

@@ -49,6 +49,8 @@ class Log {
         void Read (log_address address, int length, char *buffer);
         //Write to the tail end segment of the log starting at address. length is in Bytes, cannot exceed segment size.
         void Write(log_address address, int length, char *buffer);
+        //Free a file block located at address in the flash.
+        void Free(log_address address);
 
         //default constructor used so that mklfs, loglayer and lfsck are flexible.
         Log() = default;
