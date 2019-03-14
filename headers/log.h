@@ -7,8 +7,14 @@
 //Should be fine since this class is meant to serve as a Singleton. Only pass by reference.
 class Log {
     private:
+        log_address log_end_address;
+        unsigned int operation_count;
+        unsigned int max_operations = 1000;
+
         unsigned int summaryBlockSize();
         log_address getNextFreeBlock(log_address current);
+        //Trigger a checkpoint to flash.
+        void checkpoint();
     public:
         Flash flash;
         SuperBlock super_block;
@@ -25,6 +31,8 @@ class Log {
 
         //Initialize meta for the class members that hold the tail end of the log and segment caches in memory.
         void InitializeCache();
+
+
 
         //Get a log address object for a segment number and block number.
         log_address GetLogAddress(unsigned int segment_number, unsigned int block_number);

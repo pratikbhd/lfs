@@ -47,6 +47,53 @@ log_address Log::getNextFreeBlock(log_address current){
     return current;
 }
 
+void Log::checkpoint() {
+    operation_count++;
+    if(operation_count < max_operations) {
+        return;
+    }
+
+    Checkpoint current, other;
+    bool first;
+    if (cp1.time < cp2.time) {
+        current = cp1;
+        other = cp2;
+        first = true;
+    } else {
+        current = cp2;
+        other = cp1;
+        first = false;
+    }
+    current.address = log_end_address;
+    current.time = other.time + 1;
+
+    /* Flush log end to flash */
+    (*log_end).Flush();
+
+    /* Erase first segment for flash metadata */
+    int res = Flash_Erase(flash, 0, 1);
+    if (res) {
+        std::cout << "Erasing superblock on flash failed"; 
+        return;
+    }
+    
+    /* TODO save ifile */
+
+    res = Flash_Write(flash, LOG_SUPERBLOCK_OFFSET, 1, &super_block);
+    if (res) {
+        std::cout << "superblock write failed";
+        return;
+    }
+
+    res = Flash_Write(flash, first ? LOG_CP1_OFFSET : LOG_CP2_OFFSET, 1, &current);
+    if (res) {
+        std::cout << "checkpoint write failed";
+        return;
+    }
+
+    operation_count = 0;
+}
+
 void Log::InitializeCache(){
     log_end = new Segment(flash, super_block.bytesPerSegment, super_block.sectorsPerSegment, true);
 }
@@ -111,7 +158,6 @@ void Log::Write(log_address address, int length, char *buffer) {
 
 //TODO:
 //Internal:
-//log_checkpoint_update()
 //log_get_next_address()
 //Required by file layer:
 //log_free
@@ -123,6 +169,7 @@ void Log::Write(log_address address, int length, char *buffer) {
 //Internal:
 //log_write -> Write
 //log_get_higher_addr() -> getNextFreeBlock
+//log_checkpoint_update() -> checkpoint()
 //Required by file layer:
 //log_create_addr -> GetLogAddress
 //log_read -> Read
