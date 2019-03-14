@@ -9,7 +9,8 @@
             "command": "g++",
             "args" :[
                 "-g", "-o", "mklfs", "-I", "headers", "src/flash/mklfs.cpp", 
-                "src/log/log.cpp", "src/log/segment.cpp", "src/log/superblock.cpp", "src/log/checkpoint.cpp",
+                "src/log/log.cpp", "src/log/log_private.cpp", 
+                "src/log/segment.cpp", "src/log/superblock.cpp", "src/log/checkpoint.cpp",
                 "src/flash/flash.c"
             ],
             "group": {
@@ -23,7 +24,8 @@
             "command": "g++",
             "args" :[
                 "-g", "-o", "lfsck", "-I", "headers", "src/flash/lfsck.cpp", 
-                "src/log/log.cpp", "src/log/segment.cpp", "src/log/superblock.cpp", "src/log/checkpoint.cpp",
+                "src/log/log.cpp", "src/log/log_private.cpp", 
+                "src/log/segment.cpp", "src/log/superblock.cpp", "src/log/checkpoint.cpp",
                 "src/flash/flash.c"
             ],
             "group": {
@@ -37,7 +39,8 @@
             "command": "g++",
             "args" :[
                 "-g", "-o", "loglayer", "-I", "headers", "src/log/loglayer.cpp", 
-                "src/log/log.cpp", "src/log/segment.cpp", "src/log/superblock.cpp", "src/log/checkpoint.cpp",
+                "src/log/log.cpp", "src/log/log_private.cpp", 
+                "src/log/segment.cpp", "src/log/superblock.cpp", "src/log/checkpoint.cpp",
                 "src/flash/flash.c"
             ],
             "group": {
