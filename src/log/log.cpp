@@ -5,6 +5,48 @@ Log::~Log(){
     delete log_end;
 }
 
+void Log::GetSuperBlock() {
+    char buffer[FLASH_SECTOR_SIZE+2];
+    super_block = SuperBlock();
+    int res = Flash_Read(flash, LOG_SUPERBLOCK_OFFSET, 1, buffer);
+    if (res) {
+        std::cout <<"SuperBlock READ FAIL" << std::endl;
+    }
+    std::memcpy(&super_block, buffer, sizeof(SuperBlock)+1);
+}
+
+Checkpoint Log::GetCheckpoint(unsigned int sector){
+        /* load checkpoints */
+    char buffer[FLASH_SECTOR_SIZE+2];
+    Checkpoint cp = Checkpoint();
+    int res = Flash_Read(flash, sector, 1, buffer);
+    if (res) std::cout << "Checkpoint Read failed at sector :" << sector << std::endl;
+    std::memcpy(&cp, buffer, sizeof(Checkpoint)+1);
+    return cp;
+}
+
+unsigned int Log::summaryBlockSize(){
+    return ((sizeof(block_usage) * super_block.blocksPerSegment) / super_block.bytesPerBlock) + 1;
+}
+
+log_address Log::getNextFreeBlock(log_address current){
+    if(current.blockOffset+1 >= super_block.blocksPerSegment) {
+        current.blockOffset = summaryBlockSize();
+        current.segmentNumber = current.segmentNumber + 1;
+        //TODO: this line should happen right before the checkpoint event.
+        //super_block.usedSegments++;
+    } else {
+        current.blockOffset = current.blockOffset + 1;
+        current.segmentNumber = current.segmentNumber;
+    }
+
+    if(current.segmentNumber >= super_block.segmentCount) {
+        current.segmentNumber = 1;
+        current.blockOffset   = summaryBlockSize();
+    }
+    return current;
+}
+
 void Log::InitializeCache(){
     log_end = new Segment(flash, super_block.bytesPerSegment, super_block.sectorsPerSegment, true);
 }
@@ -69,6 +111,7 @@ void Log::Write(log_address address, int length, char *buffer) {
 
 //TODO:
 //Internal:
+//log_checkpoint_update()
 //log_get_next_address()
 //Required by file layer:
 //log_free
@@ -78,7 +121,8 @@ void Log::Write(log_address address, int length, char *buffer) {
 //
 //Done:
 //Internal:
-//log_write
+//log_write -> Write
+//log_get_higher_addr() -> getNextFreeBlock
 //Required by file layer:
 //log_create_addr -> GetLogAddress
 //log_read -> Read

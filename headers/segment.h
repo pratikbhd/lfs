@@ -138,6 +138,9 @@ class Checkpoint {
         Checkpoint() = default;
 };
 
+void to_json(nlohmann::json& j, const Checkpoint& p);
+void from_json(const nlohmann::json& j, Checkpoint& p);
+
 /**
  * Segment Summary Record
  */

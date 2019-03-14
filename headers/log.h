@@ -6,15 +6,27 @@
 //Avoid invoking Copy/Reallocate this class in the mean time.
 //Should be fine since this class is meant to serve as a Singleton. Only pass by reference.
 class Log {
+    private:
+        unsigned int summaryBlockSize();
+        log_address getNextFreeBlock(log_address current);
     public:
         Flash flash;
         SuperBlock super_block;
         Segment *log_end;
 
+        Checkpoint cp1;
+        Checkpoint cp2;
+
+        //Get the SuperBlock from the flash.
+        void GetSuperBlock();
+
+        //Get the checkpoint block from the flash saved at sector.
+        Checkpoint GetCheckpoint(unsigned int sector);
+
         //Initialize meta for the class members that hold the tail end of the log and segment caches in memory.
         void InitializeCache();
 
-        //Get a log address object for a segment number and block number
+        //Get a log address object for a segment number and block number.
         log_address GetLogAddress(unsigned int segment_number, unsigned int block_number);
         //Get a Block usage record for a log address. Caches the log segment referred for Read if it is not the tail end segment.
         block_usage GetBlockUsageRecord(log_address address);
@@ -22,6 +34,8 @@ class Log {
         void Read (log_address address, int length, char *buffer);
         //Write to the tail end segment of the log starting at address. length is in Bytes, cannot exceed segment size.
         void Write(log_address address, int length, char *buffer);
+
+        //default constructor used so that mklfs, loglayer and lfsck are flexible.
         Log() = default;
         ~Log();
 };

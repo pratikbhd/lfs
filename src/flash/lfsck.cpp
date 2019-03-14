@@ -5,20 +5,13 @@
 #include "flash.h"
 using json = nlohmann::json;
 
-json GetSuperBlock(Flash flash_handle, Log *l){
-    char buffer[FLASH_SECTOR_SIZE+2];
-    (*l).super_block = SuperBlock();
-    int res = Flash_Read(flash_handle, LOG_SUPERBLOCK_OFFSET, 1, buffer);
-    if (res) {
-        std::cout <<"SuperBlock READ FAIL" << std::endl;
-    }
-    std::memcpy(&(*l).super_block, buffer, sizeof(SuperBlock)+1);
-    //log_print_info(lInfo);
+json GetSuperBlock(Log *l){
+    (*l).GetSuperBlock();
     json json_sb = (*l).super_block;
     return json_sb;
 }
 
-json GetSegmentSummaryBlocks(Flash flash_handle, Log *l){
+json GetSegmentSummaryBlocks(Log *l){
     json segments;
     for (unsigned int i=1; i < (*l).super_block.segmentCount; i++) {
         json blocks;
@@ -30,6 +23,17 @@ json GetSegmentSummaryBlocks(Flash flash_handle, Log *l){
         segments.push_back(blocks);
     }
     return segments;
+}
+
+json GetCheckpoints(Log *l){
+    /* load checkpoints */
+    (*l).cp1 = (*l).GetCheckpoint(LOG_CP1_OFFSET);
+    (*l).cp2 = (*l).GetCheckpoint(LOG_CP2_OFFSET);
+
+    json json_cp;
+    json_cp.push_back((*l).cp1);
+    json_cp.push_back((*l).cp2);
+    return json_cp;
 }
 
 int main (int argc, char **argv)
@@ -44,9 +48,10 @@ int main (int argc, char **argv)
         Log log = Log();
         unsigned int blocks;
         log.flash = Flash_Open(argv[1], 0, &blocks);
-        status["superblock"] = GetSuperBlock(log.flash, &log);
+        status["superblock"] = GetSuperBlock(&log);
         log.InitializeCache();
-        status["segment_summary_block"] = GetSegmentSummaryBlocks(log.flash, &log);
+        status["segment_summary_block"] = GetSegmentSummaryBlocks(&log);
+        status["checkpoints"] = GetCheckpoints(&log);
         Flash_Close(log.flash);
     } else if(strcmp(argv[2], "file")==0)
         //TODO

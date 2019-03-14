@@ -4,6 +4,20 @@ Checkpoint::Checkpoint(log_address address, unsigned int time): address(address)
 
 }
 
+//Json handlers for Checkpoint class
+void to_json(nlohmann::json& j, const Checkpoint& p) {
+        j = nlohmann::json{{"segmentNumber", p.address.segmentNumber}, 
+                {"blockOffset", p.address.blockOffset},
+                {"time", p.time}
+        };
+}
+
+void from_json(const nlohmann::json& j, Checkpoint& p) {
+        j.at("segmentNumber").get_to(p.address.segmentNumber);
+        j.at("blockOffset").get_to(p.address.blockOffset);
+        j.at("time").get_to(p.time);
+}
+
 //Json handlers for block usage struct
 void to_json(nlohmann::json& j, const block_usage& p) {
         std::string use = (p.use == static_cast<char>(usage::INUSE)) ? "INUSE" : "FREE";
