@@ -29,6 +29,10 @@ unsigned int Log::summaryBlockSize(){
     return ((sizeof(block_usage) * super_block.blocksPerSegment) / super_block.bytesPerBlock) + 1;
 }
 
+unsigned int Log::summaryBlockBytes(){
+    return ((sizeof(block_usage) * super_block.blocksPerSegment) + 1);
+}
+
 log_address Log::getNextFreeBlock(log_address current){
     if(current.blockOffset+1 >= super_block.blocksPerSegment) {
         current.blockOffset = summaryBlockSize();
@@ -56,7 +60,7 @@ log_address Log::getNewLogEnd(){
         //Getting a block in a new segment will force flushing the current segment to flash.
         //Thus it is not necessary to flush a segment again in checkpoint, 
         //But we still do it as of now to maintain semantics of the checkpoint operation.
-        b = GetBlockUsageRecord(finder); 
+        b = GetBlockUsage(finder); 
     }
 
     if (log_end_address.segmentNumber != finder.segmentNumber){
@@ -126,17 +130,30 @@ log_address Log::GetLogAddress(unsigned int segment_number, unsigned int block_n
     return address;
 }
 
-block_usage Log::GetBlockUsageRecord(log_address address) {
+bool Log::SetBlockUsage(log_address address, block_usage record){
+    if(address.segmentNumber == 0)
+        return false;
+
+    char data[summaryBlockBytes()];
+    log_address base = GetLogAddress(address.segmentNumber, 0);
+    Read(base, summaryBlockBytes(), data);
+    char *o = data + (address.blockOffset * sizeof(block_usage));
+    memcpy(o, &record, sizeof(block_usage));
+    Write(base, summaryBlockBytes(), data);
+    return true;
+}
+
+block_usage Log::GetBlockUsage(log_address address) {
     //Block usage records are stored in the first block of the segment.
     //The first block of the segment serves as the segment summary block.
     //Thus we have to read the segment sequentially starting from the first block
     //to locate the requested block usage record.
     block_usage b = {0, 0};
-    char data[(sizeof(b) * super_block.blocksPerSegment)+1];
+    char data[summaryBlockBytes()];
     log_address read_address = GetLogAddress(address.segmentNumber, 0);
-    Read(read_address, (sizeof(b) * super_block.blocksPerSegment)+1, data);
-    char *o = data + (address.blockOffset * sizeof(b));
-    memcpy(&b, o, sizeof(b));
+    Read(read_address, summaryBlockBytes(), data);
+    char *o = data + (address.blockOffset * sizeof(block_usage));
+    memcpy(&b, o, sizeof(block_usage));
     return b;
 }
 
@@ -177,8 +194,11 @@ void Log::Write(log_address address, int length, char *buffer) {
     memcpy((*log_end).data + offsetBytes, buffer, length);
 }
 
+
 //TODO:
 //Internal:
+//log_cache_free
+//log_set_block_free
 //Required by file layer:
 //log_free
 //log_set_inode_addr
@@ -187,10 +207,16 @@ void Log::Write(log_address address, int length, char *buffer) {
 //
 //Done:
 //Internal:
-//log_write -> Write
+//log_set_block -> SetBlockUsage()
+//log_write -> Write()
 //log_get_higher_addr() -> getNextFreeBlock
 //log_checkpoint_update() -> checkpoint()
 //log_get_next_address() -> getNewLogEnd
+//
 //Required by file layer:
 //log_create_addr -> GetLogAddress
 //log_read -> Read
+//
+//TODO:
+//Log::Read -> Should support caching recently read segments. A round robin array should suffice.
+//Log::Write -> should report wear and callers should handle this.

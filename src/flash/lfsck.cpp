@@ -16,7 +16,7 @@ json GetSegmentSummaryBlocks(Log *l){
     for (unsigned int i=1; i < (*l).super_block.segmentCount; i++) {
         json blocks;
         for (unsigned int j=0; j < (*l).super_block.blocksPerSegment; j++) {
-            block_usage b = (*l).GetBlockUsageRecord((*l).GetLogAddress(i,j));
+            block_usage b = (*l).GetBlockUsage((*l).GetLogAddress(i,j));
             json bjson = b;
             blocks.push_back(bjson);
         }

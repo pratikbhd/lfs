@@ -3,8 +3,7 @@
 #include "json.hpp"
 
 SuperBlock::SuperBlock(unsigned int no_of_segments, unsigned int blocks_per_segment, unsigned int sectors_per_block, unsigned int blocks, unsigned int wear_limit){
-
-        //Flash level info
+    //Flash level info
     segmentCount = no_of_segments;
     blockCount = blocks;
     sectorCount = sectors_per_block * blocks;
@@ -42,6 +41,7 @@ void to_json(nlohmann::json& j, const SuperBlock& p) {
         };
 }
 
+//Unused anywhere, required as a place holder for json parsing.
 void from_json(const nlohmann::json& j, SuperBlock& p) {
         j.at("segmentCount").get_to(p.segmentCount);
         j.at("blockCount").get_to(p.blockCount);
