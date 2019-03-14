@@ -3,12 +3,15 @@
 #include "segment.h"
 #include "flash.h"
 
-Segment::Segment(Flash flash, unsigned int bytes_per_segment, unsigned int sectors_per_segment): 
-flash(flash), bytesPerSegment(bytes_per_segment), sectorsPerSegment(sectors_per_segment), data(new char[bytes_per_segment + 10]){
+Segment::Segment(Flash flash, unsigned int bytes_per_segment, unsigned int sectors_per_segment, bool active_segment): 
+flash(flash), bytesPerSegment(bytes_per_segment), sectorsPerSegment(sectors_per_segment), active(active_segment), 
+data(new char[bytes_per_segment + 1]){
 
 }
 
+//Explicity we have to delete all pointer members of this class to avoid memory leaks.
 Segment::~Segment(){
+        std::cout << "Segment Deleted : " << segmentNumber;
         delete[] data;  // deallocate
 }
 
@@ -19,40 +22,48 @@ unsigned int Segment::GetSegmentNumber(){
 void Segment::Load(unsigned int segment_number) {   
     segmentNumber = segment_number;
     unsigned int sector_num = segmentNumber * sectorsPerSegment;
-    //std::memset(data, 0, bytesPerSegment);
     delete[] data;
-    data = new char[bytesPerSegment + 10];
+    data = new char[bytesPerSegment + 1];
 
-    char buffer[bytesPerSegment +1];
+    char buffer[bytesPerSegment + 1];
 
     int res = Flash_Read(flash, 
                 sector_num, 
                 sectorsPerSegment, 
                 buffer
               );
-    if(res)
+    if(res){
         std::cout << "READ FAIL!" << std::endl;
-
-    std::memcpy(data, buffer, bytesPerSegment + 1);
-    std::cout << "Segment Cached : " << segmentNumber << std::endl;
+    } else {
+        std::memcpy(data, buffer, bytesPerSegment + 1);
+        loaded = true;
+        std::cout << "Segment Cached : " << segmentNumber << std::endl;   
+    }
 }
 
-
-Checkpoint::Checkpoint(log_address address, unsigned int time): address(address), time(time){
-
+void Segment::Erase(){
+    unsigned int block_number = (segmentNumber*sectorsPerSegment)/FLASH_SECTORS_PER_BLOCK;
+    int res = Flash_Erase(flash, block_number, sectorsPerSegment/FLASH_SECTORS_PER_BLOCK);
+    if (res)
+        std::cout << "Erasing the segment failed";
 }
 
+void Segment::Flush(){
+    //only an active segment is written back to cache. This segment should be the log end.
+    if(!active) return;
+    //A Segment is not allocated to a valid flash segment.
+    if(!loaded) return;
 
-void to_json(nlohmann::json& j, const block_usage& p) {
-        std::string use = (p.use == static_cast<char>(usage::INUSE)) ? "INUSE" : "FREE";
-        j = nlohmann::json{{"inum", p.inum}, 
-        {"use", use}
-        };
-}
+    Erase();
+    unsigned int sector_number = segmentNumber*sectorsPerSegment;
+    
+    int res = Flash_Write(flash,
+                 sector_number,
+                 sectorsPerSegment,
+                 data
+               );
+    if(res)
+        std::cout << "Flushing the Segment :" << segmentNumber << "to flash failed!";
 
-void from_json(const nlohmann::json& j, block_usage& p) {
-        std::string use;
-        j.at("inum").get_to(p.inum);
-        j.at("use").get_to(use);
-        p.use = static_cast<char>(use == "INUSE" ? usage::INUSE : usage::FREE);
+    loaded = false;
 }

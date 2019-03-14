@@ -9,7 +9,8 @@
             "command": "g++",
             "args" :[
                 "-g", "-o", "mklfs", "-I", "headers", "src/flash/mklfs.cpp", 
-                "src/log/log.cpp", "src/log/segment.cpp", "src/log/superblock.cpp", "src/flash/flash.c"
+                "src/log/log.cpp", "src/log/segment.cpp", "src/log/superblock.cpp", "src/log/checkpoint.cpp",
+                "src/flash/flash.c"
             ],
             "group": {
                 "kind": "build",
@@ -22,7 +23,8 @@
             "command": "g++",
             "args" :[
                 "-g", "-o", "lfsck", "-I", "headers", "src/flash/lfsck.cpp", 
-                "src/log/log.cpp", "src/log/segment.cpp", "src/log/superblock.cpp", "src/flash/flash.c"
+                "src/log/log.cpp", "src/log/segment.cpp", "src/log/superblock.cpp", "src/log/checkpoint.cpp",
+                "src/flash/flash.c"
             ],
             "group": {
                 "kind": "build",
@@ -34,19 +36,9 @@
             "type": "shell",
             "command": "g++",
             "args" :[
-                "-g", "-o", "loglayer", "-I", "headers", "src/log/loglayer.cpp", "src/flash/flash.c"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "build cpptest",
-            "type": "shell",
-            "command": "g++",
-            "args" :[
-                "-g", "-o", "cpptest", "-I", "headers", "src/cpp-test/hello.cpp", "src/cpp-test/person.cpp"
+                "-g", "-o", "loglayer", "-I", "headers", "src/log/loglayer.cpp", 
+                "src/log/log.cpp", "src/log/segment.cpp", "src/log/superblock.cpp", "src/log/checkpoint.cpp",
+                "src/flash/flash.c"
             ],
             "group": {
                 "kind": "build",

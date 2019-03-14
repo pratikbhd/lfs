@@ -18,12 +18,19 @@ class Segment {
         unsigned int bytesPerSegment;
         unsigned int sectorsPerSegment;
         unsigned int segmentNumber;
+        bool loaded = false;
+        bool active = false;
     public:
         char *data;
-        Segment(Flash flash, unsigned int bytes_per_segment, unsigned int sectors_per_segment);
+        Segment(Flash flash, unsigned int bytes_per_segment, unsigned int sectors_per_segment, bool active_segment);
         Segment() = default;
         ~Segment();
+        //Load a segment to memory.
         void Load(unsigned int segment_number);
+        //Flush a loaded segment to flash.
+        void Flush();
+        //Erase the copy of the loaded segment in the flash.
+        void Erase();
         unsigned int GetSegmentNumber();
 };
 
