@@ -52,6 +52,9 @@ class Log {
         //Free a file block located at address in the flash.
         void Free(log_address address);
 
+        //Update the block pointer of the Inode i at the given block pointer array index to a new log address.
+        bool Log::UpdateInode(Inode *i, int index, log_address address);
+
         //default constructor used so that mklfs, loglayer and lfsck are flexible.
         Log() = default;
         ~Log();

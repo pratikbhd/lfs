@@ -118,7 +118,7 @@ struct log_address {
  */
 class Inode {
     public:
-        unsigned int      inum;
+        unsigned int inum;
         char     fileType;
         size_t   fileSize;
         unsigned int hardLinkCount;
