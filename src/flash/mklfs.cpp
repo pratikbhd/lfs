@@ -67,13 +67,13 @@ void lfs_init_segmentsummary(Log *l){
         block_usage b[(*l).super_block.blocksPerSegment];
         unsigned int j = 0;
         while (j < (sizeof(b)/(*l).super_block.bytesPerBlock) + 1) {
-            b[j].use = static_cast<int>(usage::INUSE);
-            b[j].inum = static_cast<unsigned int>(usage::NOINUM);
+            b[j].use = static_cast<char>(usage::INUSE);
+            b[j].inum = static_cast<unsigned int>(reserved_inum::NOINUM);
             j++;
         }
         for(; j < (*l).super_block.blocksPerSegment; j++) {
-            b[j].use = static_cast<int>(usage::FREE);
-            b[j].inum = static_cast<unsigned int>(usage::NOINUM);
+            b[j].use = static_cast<char>(usage::FREE);
+            b[j].inum = static_cast<unsigned int>(reserved_inum::NOINUM);
         }
         unsigned int offset = i*(((*l).super_block.sectorsPerBlock)*((*l).super_block.blocksPerSegment));
         std::cout << "writing segment summary at offset:" << offset << std::endl;

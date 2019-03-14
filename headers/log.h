@@ -18,6 +18,11 @@ class Log {
         log_address getNewLogEnd();
         //Trigger a checkpoint to flash.
         void checkpoint();
+
+        //Set a block usage record for a log address. Returns false if the operation is invalid or fails.
+        bool setBlockUsage(log_address address, block_usage record);
+        //Reset a block usage record to be unused and have no inum associated with it.
+        bool resetBlockUsage(log_address address);
     public:
         Flash flash;
         SuperBlock super_block;
@@ -39,8 +44,6 @@ class Log {
         log_address GetLogAddress(unsigned int segment_number, unsigned int block_number);
         //Get a Block usage record for a log address. Caches the log segment referred for Read if it is not the tail end segment.
         block_usage GetBlockUsage(log_address address);
-        //Set a block usage record for a log address. Returns false if the operation is invalid or fails.
-        bool SetBlockUsage(log_address address, block_usage record);
 
         //Read from the tail end segment of the log or any other segments cached starting at address. length is in Bytes, cannot exceed segment size.
         void Read (log_address address, int length, char *buffer);

@@ -130,7 +130,7 @@ log_address Log::GetLogAddress(unsigned int segment_number, unsigned int block_n
     return address;
 }
 
-bool Log::SetBlockUsage(log_address address, block_usage record){
+bool Log::setBlockUsage(log_address address, block_usage record){
     if(address.segmentNumber == 0)
         return false;
 
@@ -141,6 +141,13 @@ bool Log::SetBlockUsage(log_address address, block_usage record){
     memcpy(o, &record, sizeof(block_usage));
     Write(base, summaryBlockBytes(), data);
     return true;
+}
+
+bool Log::resetBlockUsage(log_address address){
+    block_usage b;
+    b.inum = static_cast<unsigned int>(reserved_inum::NOINUM);
+    b.use = static_cast<char>(usage::FREE);
+    return setBlockUsage(address, b);
 }
 
 block_usage Log::GetBlockUsage(log_address address) {
@@ -198,7 +205,6 @@ void Log::Write(log_address address, int length, char *buffer) {
 //TODO:
 //Internal:
 //log_cache_free
-//log_set_block_free
 //Required by file layer:
 //log_free
 //log_set_inode_addr
@@ -207,7 +213,8 @@ void Log::Write(log_address address, int length, char *buffer) {
 //
 //Done:
 //Internal:
-//log_set_block -> SetBlockUsage()
+//log_set_block_free -> resetBlockUsage()
+//log_set_block -> setBlockUsage()
 //log_write -> Write()
 //log_get_higher_addr() -> getNextFreeBlock
 //log_checkpoint_update() -> checkpoint()
