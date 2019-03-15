@@ -31,6 +31,7 @@
 //#include <time.h>
 //#include <stdbool.h>
 #include "flash.h"
+#include "lfs_enums.h"
 #include "segment.h"
 #include "log.h"
 #include "json.hpp"

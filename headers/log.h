@@ -31,6 +31,8 @@ class Log {
         Checkpoint cp1;
         Checkpoint cp2;
 
+        Inode iFile;
+
         //Get the SuperBlock from the flash.
         void GetSuperBlock();
 
@@ -44,7 +46,7 @@ class Log {
         log_address GetLogAddress(unsigned int segment_number, unsigned int block_number);
 
         //Get a log address object stored at the specified index in the Inode block pointers.
-        log_address Log::GetLogAddress(Inode i, int index);
+        log_address GetLogAddress(Inode i, int index);
 
         //Get a Block usage record for a log address. Caches the log segment referred for Read if it is not the tail end segment.
         block_usage GetBlockUsage(log_address address);
@@ -53,11 +55,14 @@ class Log {
         void Read (log_address address, int length, char *buffer);
         //Write to the tail end segment of the log starting at address. length is in Bytes, cannot exceed segment size.
         void Write(log_address address, int length, char *buffer);
+
+        //Write a file with Inode. returns false if write cannot be completed.
+        bool Write(Inode *in, unsigned int blockNumber, int length, const char* buffer);
         //Free a file block located at address in the flash.
         void Free(log_address address);
 
         //Update the block pointer of the Inode i at the given block pointer array index to a new log address.
-        bool Log::UpdateInode(Inode *i, int index, log_address address);
+        bool UpdateInode(Inode *i, int index, log_address address);
 
         //default constructor used so that mklfs, loglayer and lfsck are flexible.
         Log() = default;

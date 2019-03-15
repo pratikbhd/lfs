@@ -152,13 +152,3 @@ struct block_usage {
 void to_json(nlohmann::json& j, const block_usage& p);
 
 void from_json(const nlohmann::json& j, block_usage& p);
-
-enum class usage {
-    FREE = 0,
-    INUSE = 1
-};
-
-enum class reserved_inum {
-    NOINUM = 0,
-    IFILE = 1
-};

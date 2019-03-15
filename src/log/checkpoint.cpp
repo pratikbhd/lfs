@@ -1,3 +1,4 @@
+#include "lfs_enums.h"
 #include "segment.h"
 
 Checkpoint::Checkpoint(log_address address, unsigned int time): address(address), time(time){

@@ -1,4 +1,5 @@
 #include <iostream>
+#include "lfs_enums.h"
 #include "log.h"
 
 void Log::GetSuperBlock() {
@@ -165,20 +166,17 @@ log_address Log::GetLogAddress(Inode i, int index) {
     return address;
 }
 
-//TODO:
-//Required by file layer:
-//log_write_inode -> write entire file with inode
-//
 //Done:
 //Internal:
 //log_set_block_free -> resetBlockUsage()
 //log_set_block -> setBlockUsage()
-//log_write -> Write()
+//log_write -> Write(log_address address, int length, char *buffer)
 //log_get_higher_addr() -> getNextFreeBlock
 //log_checkpoint_update() -> checkpoint()
 //log_get_next_address() -> getNewLogEnd
 //
 //Required by file layer:
+//log_write_inode -> Write(Inode *in, unsigned int blockNumber, int length, const char* buffer)
 //log_set_inode_addr -> UpdateInode()
 //log_free -> Free()
 //log_get_inode_addr -> GetLogAddress(Inode i, int index)

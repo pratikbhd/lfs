@@ -1,4 +1,5 @@
 #include <iostream>
+#include <lfs_enums.h>
 #include "log.h"
 
 Log::~Log(){
