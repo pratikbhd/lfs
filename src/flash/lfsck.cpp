@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include "segment.h"
 #include "log.h"
 #include "json.hpp"
@@ -67,6 +68,10 @@ int main (int argc, char **argv)
         printf("{}\n");
 
     std::string result = status.dump(4);
+
+    std::ofstream jsonFile("lfs.json", std::ios_base::trunc);
+    jsonFile << result;
+    jsonFile.close();
     std::cout << result << std::endl;
     std::cout<< "Json snapshot complete!" << std::endl << "Press ENTER key to quit!";
     std::cin.get();

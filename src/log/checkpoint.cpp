@@ -41,11 +41,11 @@ void to_json(nlohmann::json& j, const Inode& p){
                 {"fileSize", p.fileSize},
                 {"fileType", p.fileType},
                 {"hardLinkCount", p.hardLinkCount},
-                {"block_0", std::to_string(p.block_pointers[0].segmentNumber) + " : " + std::to_string(p.block_pointers[0].blockOffset)},
-                {"block_1", std::to_string(p.block_pointers[1].segmentNumber) + " : " + std::to_string(p.block_pointers[1].blockOffset)},
-                {"block_2", std::to_string(p.block_pointers[2].segmentNumber) + " : " + std::to_string(p.block_pointers[2].blockOffset)},
-                {"block_3", std::to_string(p.block_pointers[3].segmentNumber) + " : " + std::to_string(p.block_pointers[3].blockOffset)},
-                {"indirect_block", std::to_string(p.indirect_block.segmentNumber) + " : " + std::to_string(p.indirect_block.blockOffset)},
+                {"block_0", nlohmann::json{{"segmentNumber", p.block_pointers[0].segmentNumber}, {"blockOffset", p.block_pointers[0].blockOffset}}},
+                {"block_1", nlohmann::json{{"segmentNumber", p.block_pointers[1].segmentNumber}, {"blockOffset", p.block_pointers[1].blockOffset}}},
+                {"block_2", nlohmann::json{{"segmentNumber", p.block_pointers[2].segmentNumber}, {"blockOffset", p.block_pointers[2].blockOffset}}},
+                {"block_3", nlohmann::json{{"segmentNumber", p.block_pointers[3].segmentNumber}, {"blockOffset", p.block_pointers[3].blockOffset}}},
+                {"indirect_block", nlohmann::json{{"segmentNumber", p.indirect_block.segmentNumber}, {"blockOffset", p.indirect_block.blockOffset}}}
         };
 }
 
