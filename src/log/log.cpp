@@ -176,6 +176,132 @@ log_address Log::GetLogAddress(Inode i, int index) {
     return address;
 }
 
+bool Log::Write(Inode *target, unsigned int blockNumber, int length, const char* buffer) {
+    int max_block_pointers = 4 + (super_block.bytesPerBlock/sizeof(log_address));
+    
+    if (length > ((super_block.bytesPerBlock)*max_block_pointers)) {
+        throw "Log::Write() - File length exceeds the maximum permitted file size!";
+    }
+
+	std::cout << "Write Enter ==> length: "<< length <<", file size: "<< (*target).fileSize << ", in->inum: " << (*target).inum << std::endl;
+
+    Inode *update = target;
+
+    if ((*target).inum == static_cast<unsigned int>(reserved_inum::IFILE)) {
+        update = &iFile;
+    }
+
+    /* Do the write one block at a time.*/
+	int i = 0; // Buffer offset, number of blocks
+    while (length > 0) {
+        if (blockNumber > max_block_pointers) throw "Log::Write() - File block numbers exceeds the maximum permitted file size!";
+
+        // get new log end address
+        log_address address = getNewLogEnd();
+  
+        // get old block pointer data
+        char oldData[super_block.bytesPerBlock];
+        if(GetLogAddress(*update, blockNumber).segmentNumber != 0) {
+            log_address lax = GetLogAddress(*update, blockNumber);
+            Read(lax, super_block.bytesPerBlock, oldData);
+        }
+        
+        // add new data to old block pinter data
+		memcpy(oldData, buffer + (super_block.bytesPerBlock*i), super_block.bytesPerBlock);
+
+        // update new block with updated data
+        Write(address, super_block.bytesPerBlock, oldData);
+
+        // Set usage. Should this be done twice to make sure?
+        UpdateInode(update, blockNumber, address);
+        std::cout << "Write Block (input address params)==> blocknum: " << blockNumber << " sn: " << address.segmentNumber << " blk_offset: " << address.blockOffset;
+        
+        log_address verify = GetLogAddress(*update, blockNumber);
+        std::cout << "Write Block (updated address params)==> blocknum: " << blockNumber << " sn: " << verify.segmentNumber << " blk_offset: " << verify.blockOffset;
+
+        // one block written successfully.
+        length -= super_block.bytesPerBlock;
+
+        //increment blocknum
+        blockNumber++;
+		i++;
+    }
+	
+    /* Update Inode in ifile, unless this is the ifile*/
+    if ((*target).inum != static_cast<unsigned int>(reserved_inum::IFILE)) {
+        int bytes_left = sizeof(Inode);
+        int iFile_block_number     = 0; 
+    	
+        // Set ifile size	
+	    if ((1+update->inum) * sizeof(Inode) > iFile.fileSize)
+             iFile.fileSize = (1+update->inum) * sizeof(Inode);
+        
+        bool first_iter = true;
+        while(bytes_left > 0) {
+            char buffer[super_block.bytesPerBlock+1];
+
+            //bytes which will be written successfully in one iteration.
+            int bytes_done     = 0;
+            int offset = 0;
+            int begin = (update->inum * sizeof(Inode));
+            int end   = begin + sizeof(Inode);
+            int split_point = 0;
+            
+            std::cout << "Write iFile INUM: " << update->inum << " BEGIN: " << begin << " END: " << end << std::endl;
+
+            //The iFile is a non continuous set of blocks identified by block number we try to maximize the usage of these blocks, if inode doesnt fit perfectly.
+            if (begin % super_block.bytesPerBlock > end % super_block.bytesPerBlock) {
+                //The inode will be split across two blocks of the iFile. Inode wont be split across more than two.
+                if (first_iter) {
+                    //Get the block number in iFile corresponding to the inum.
+                    iFile_block_number = begin / super_block.bytesPerBlock;
+                    //offset to first byte of the inode in the iFile block having current inum.
+                    offset = begin % super_block.bytesPerBlock;
+                    bytes_done = super_block.bytesPerBlock - offset;
+                } else {
+                    //second half of the inode to be written to the second block.
+                    iFile_block_number = iFile_block_number + 1;
+                    offset    = 0;
+                    bytes_done   = (end % super_block.bytesPerBlock);
+                    split_point = sizeof(Inode) - bytes_done;
+                }
+            } else {
+                //The entire inode fits in one block of the iFile.
+                iFile_block_number = begin / super_block.bytesPerBlock;
+                offset    = begin % super_block.bytesPerBlock;
+                bytes_done = sizeof(Inode);
+            }
+
+            std::cout << "Write iFile split_point: " << split_point << " BLOCKNUM: " << iFile_block_number << " offset: " << offset << " bytes_done: "<< bytes_done << std::endl;
+
+            bool new_ifile_block = false;
+            if(GetLogAddress(iFile, iFile_block_number).segmentNumber == 0) {
+                UpdateInode(&iFile, iFile_block_number, getNewLogEnd());
+                new_ifile_block = true;
+            }
+
+            log_address address = GetLogAddress(iFile, iFile_block_number);
+            //Read one block of the iFile.
+            Read(address, super_block.bytesPerBlock, buffer);
+            //update the block at the location with the inode, considering split point, if the inode was split.
+            memcpy((buffer+offset), (((char*)update)+split_point), bytes_done);
+
+            //write the updated block of the ifile to the log end.
+            if(!new_ifile_block) {
+                address = getNewLogEnd();
+                UpdateInode(&iFile, iFile_block_number, address);
+            }
+            Write(address, super_block.bytesPerBlock, buffer);
+
+            bytes_left -= bytes_done;
+            first_iter = false;
+        }
+    }
+
+    return true;
+}
+
+
 //Done:
 //Internal:
 //log_set_block_free -> resetBlockUsage()
