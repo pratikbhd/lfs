@@ -59,7 +59,8 @@ class Log {
         //Write to the tail end segment of the log starting at address. length is in Bytes, cannot exceed segment size.
         void Write(log_address address, int length, char *buffer);
 
-        //Write a file with Inode. returns false if write cannot be completed.
+        //Write or update a file with Inode and contents in buffer starting at the specified blocknumber upto length of buffer in bytes. 
+        //length cannot exceed the maximum permitted file size. returns false if write cannot be completed.
         bool Write(Inode *in, unsigned int blockNumber, int length, const char* buffer);
         //Free a file block located at address in the flash.
         void Free(log_address address);
