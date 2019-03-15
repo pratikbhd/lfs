@@ -110,6 +110,30 @@ void lfs_init_checkpoint(Log *l){
     std::free(buffer);
 }
 
+void lfs_init_inodemap(Log *l) {
+    /* Create iFile */
+    (*l).iFile = Inode();
+    (*l).iFile.inum = static_cast<unsigned int>(reserved_inum::IFILE);
+    (*l).iFile.fileSize = 0;
+    (*l).iFile.fileType = static_cast<char>(fileTypes::IFILE);
+
+    log_address address = {0, 0};
+    (*l).iFile.block_pointers[0]= address;
+    (*l).iFile.block_pointers[1]= address;
+    (*l).iFile.block_pointers[2]= address;
+    (*l).iFile.block_pointers[3]= address;
+
+
+    char buffer[sizeof(Inode)+ 1];
+    memset(buffer, 0, sizeof(Inode)+ 1);
+    memcpy(buffer, &(*l).iFile, sizeof(Inode)+1);
+    std::cout << "writing iFile at offset: " << LOG_IFILE_OFFSET << std::endl;
+    int res = Flash_Write((*l).flash, LOG_IFILE_OFFSET, 1, buffer);
+    if (res) {
+        std::cout << "MKLFS WRITE FAIL" << std::endl;
+    }
+}
+
 bool lfs_create(long no_of_segments,
                 long blocks_per_segment,
                 long wear_limit,
@@ -191,6 +215,7 @@ int main(int argc, char** argv)
     lfs_init_superblock(&log);
     lfs_init_checkpoint(&log);
     lfs_init_segmentsummary(&log);
+    lfs_init_inodemap(&log);
     Flash_Close(log.flash);
 
     std::cout<< "MKLFS Complete!" << std::endl << "Press ENTER key to quit!";

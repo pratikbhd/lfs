@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include <memory>
 #include "flash.h"
 #include "json.hpp"
 
@@ -126,6 +125,9 @@ class Inode {
         log_address indirect_block;
         Inode() = default;
 };
+
+void to_json(nlohmann::json& j, const Inode& p);
+void from_json(const nlohmann::json& j, Inode& p);
 
 /**
  * Checkpoint.

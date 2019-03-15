@@ -12,6 +12,16 @@ void Log::GetSuperBlock() {
     std::memcpy(&super_block, buffer, sizeof(SuperBlock)+1);
 }
 
+void Log::GetiFile() {
+    char buffer[FLASH_SECTOR_SIZE+2];
+    iFile = Inode();
+    int res = Flash_Read(flash, LOG_IFILE_OFFSET, 1, buffer);
+    if (res) {
+        std::cout <<"iFile READ FAIL" << std::endl;
+    }
+    std::memcpy(&iFile, buffer, sizeof(Inode));
+}
+
 Checkpoint Log::GetCheckpoint(unsigned int sector){
         /* load checkpoints */
     char buffer[FLASH_SECTOR_SIZE+2];

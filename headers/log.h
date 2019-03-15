@@ -36,6 +36,9 @@ class Log {
         //Get the SuperBlock from the flash.
         void GetSuperBlock();
 
+        //Get the iFile from the flash.
+        void GetiFile();
+
         //Get the checkpoint block from the flash saved at sector.
         Checkpoint GetCheckpoint(unsigned int sector);
 

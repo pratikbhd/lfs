@@ -36,6 +36,12 @@ json GetCheckpoints(Log *l){
     return json_cp;
 }
 
+json GetiFile(Log *l){
+    (*l).GetiFile();
+    json json_i = (*l).iFile;
+    return json_i;
+}
+
 int main (int argc, char **argv)
 {
     if (argc != 3) {
@@ -52,6 +58,7 @@ int main (int argc, char **argv)
         log.InitializeCache();
         status["segment_summary_block"] = GetSegmentSummaryBlocks(&log);
         status["checkpoints"] = GetCheckpoints(&log);
+        status["iFile"] = GetiFile(&log);
         Flash_Close(log.flash);
     } else if(strcmp(argv[2], "file")==0)
         //TODO

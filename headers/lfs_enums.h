@@ -14,4 +14,4 @@ enum class fileTypes {
     DIRECTORY = 2,
     SYM_LINK = 3,
     IFILE = 5
-}
+};
