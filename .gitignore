@@ -9,3 +9,7 @@ flash_test
 \.vscode/settings\.json
 
 lfsck
+
+lfsck\.dSYM/
+
+mklfs\.dSYM/
