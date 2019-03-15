@@ -142,9 +142,31 @@ bool Log::UpdateInode(Inode *i, int index, log_address address) {
     return true;
 }
 
+log_address Log::GetLogAddress(Inode i, int index) {
+    log_address address = {0, 0};
+
+    if(index < 0) {
+        throw "Log::GetLogAddress() - Invalid index for block pointer. Index is negative.";
+    } else if(index < 4) {
+        if(i.block_pointers[index].segmentNumber > 0) {
+            return i.block_pointers[index];
+        }
+    } else {
+        if(i.indirect_block.segmentNumber > 0) {
+            char data[super_block.bytesPerBlock];
+            unsigned int offsetBytes = (index - 4) * sizeof(log_address);
+            if (offsetBytes + sizeof(log_address) > super_block.bytesPerBlock)
+                throw "Log::GetLogAddress() - the index specified references block pointer data that exceeds a block size. Not supported as of now.";
+
+            Read(i.indirect_block, super_block.bytesPerBlock, data);
+            memcpy(&address, (data + offsetBytes), sizeof(log_address));
+        }
+    }
+    return address;
+}
+
 //TODO:
 //Required by file layer:
-//log_get_inode_addr
 //log_write_inode -> write entire file with inode
 //
 //Done:
@@ -159,7 +181,8 @@ bool Log::UpdateInode(Inode *i, int index, log_address address) {
 //Required by file layer:
 //log_set_inode_addr -> UpdateInode()
 //log_free -> Free()
-//log_create_addr -> GetLogAddress()
+//log_get_inode_addr -> GetLogAddress(Inode i, int index)
+//log_create_addr -> GetLogAddress(unsigned int segment_number, unsigned int block_number)
 //log_read -> Read()
 //
 //TODO:

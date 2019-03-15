@@ -42,6 +42,10 @@ class Log {
 
         //Get a log address object for a segment number and block number.
         log_address GetLogAddress(unsigned int segment_number, unsigned int block_number);
+
+        //Get a log address object stored at the specified index in the Inode block pointers.
+        log_address Log::GetLogAddress(Inode i, int index);
+
         //Get a Block usage record for a log address. Caches the log segment referred for Read if it is not the tail end segment.
         block_usage GetBlockUsage(log_address address);
 
