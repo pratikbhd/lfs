@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include "segment.h"
 #include "log.h"
 #include "json.hpp"
@@ -36,6 +37,12 @@ json GetCheckpoints(Log *l){
     return json_cp;
 }
 
+json GetiFile(Log *l){
+    (*l).GetiFile();
+    json json_i = (*l).iFile;
+    return json_i;
+}
+
 int main (int argc, char **argv)
 {
     if (argc != 3) {
@@ -52,6 +59,7 @@ int main (int argc, char **argv)
         log.InitializeCache();
         status["segment_summary_block"] = GetSegmentSummaryBlocks(&log);
         status["checkpoints"] = GetCheckpoints(&log);
+        status["iFile"] = GetiFile(&log);
         Flash_Close(log.flash);
     } else if(strcmp(argv[2], "file")==0)
         //TODO
@@ -60,6 +68,10 @@ int main (int argc, char **argv)
         printf("{}\n");
 
     std::string result = status.dump(4);
+
+    std::ofstream jsonFile("lfs.json", std::ios_base::trunc);
+    jsonFile << result;
+    jsonFile.close();
     std::cout << result << std::endl;
     std::cout<< "Json snapshot complete!" << std::endl << "Press ENTER key to quit!";
     std::cin.get();
