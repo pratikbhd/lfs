@@ -5,6 +5,15 @@
 //TODO: Implement copy constructor / rule of three constructors for pointer members. 
 //Avoid invoking Copy/Reallocate this class in the mean time.
 //Should be fine since this class is meant to serve as a Singleton. Only pass by reference.
+
+typedef struct {
+    char lfsFile[256];
+    int cacheSize;
+    int interval;
+    int startCleaner;
+    int stopCleaner;
+} inputState;
+
 class Log {
     private:
         log_address log_end_address;
