@@ -28,6 +28,8 @@ class Segment {
         void Load(unsigned int segment_number);
         //Flush a loaded segment to flash.
         void Flush();
+        //Force flush the segment to flash regardless of whether the segment has been loaded or not.
+        void ForceFlush();
         //Erase the copy of the loaded segment in the flash.
         void Erase();
         unsigned int GetSegmentNumber();

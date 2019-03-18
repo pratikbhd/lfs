@@ -111,6 +111,12 @@ void Log::Free(log_address address){
     memset((*log_end).data + offsetBytes, 0, super_block.bytesPerBlock);
 }
 
+void Log::Flush(){
+    (*log_end).ForceFlush();
+    operation_count = max_operations;
+    checkpoint();
+}
+
 bool Log::UpdateInode(Inode *i, int index, log_address address) {
     block_usage b;
     b.inum = (*i).inum;
@@ -324,3 +330,4 @@ bool Log::Write(Inode *target, unsigned int blockNumber, int length, const char*
 //Log::Read -> Should support caching recently read segments. A round robin array should suffice.
 //Log::Write -> should report wear and callers should handle this.
 //Log::UpdateInode -> Should handle large files whose indirect block pointer list can exceed a block. Traverse block pointer list recursively. (low priority, can handle upto 1024 bytes of indirect blocks)
+//Read the log end address from the checkpoint.

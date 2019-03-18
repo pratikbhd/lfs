@@ -77,6 +77,9 @@ class Log {
         //Update the block pointer of the Inode i at the given block pointer array index to a new log address.
         bool UpdateInode(Inode *i, int index, log_address address);
 
+        //Flush all log layer objects from memory to the flash.
+        void Flush();
+
         //default constructor used so that mklfs, loglayer and lfsck are flexible.
         Log() = default;
         ~Log();

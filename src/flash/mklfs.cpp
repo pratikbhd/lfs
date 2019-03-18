@@ -86,7 +86,7 @@ void lfs_init_segmentsummary(Log *l){
 }
 
 void lfs_init_checkpoint(Log *l){
-    Checkpoint check_point((*l).GetLogAddress(1, 1), 0);
+    Checkpoint check_point((*l).GetLogAddress(0, 0), 0);
     char *buffer = (char*)std::malloc(sizeof(Checkpoint)+ 1);
 
     //Write First Checkpoint

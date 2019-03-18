@@ -50,7 +50,7 @@ void* Directory::Initialize() {
 		directoryInode.fileType = static_cast<char>(fileTypes::DIRECTORY);
 		directoryInode.fileSize = 0;
 		file.fileWrite(&directoryInode, 0, 0, NULL);
-		//TODO: Directory_GetInode over here?
+		file.log.Flush();
 	
 	} else {
 		file.fileRead(&iFile, 0, iFile.fileSize, &inodeArray);
