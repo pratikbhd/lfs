@@ -5,6 +5,15 @@
 //TODO: Implement copy constructor / rule of three constructors for pointer members. 
 //Avoid invoking Copy/Reallocate this class in the mean time.
 //Should be fine since this class is meant to serve as a Singleton. Only pass by reference.
+
+struct inputState{
+    std::string lfsFile;
+    // int cacheSize;
+    int interval;
+    // int startCleaner;
+    // int stopCleaner;
+};
+
 class Log {
     private:
         log_address log_end_address;
