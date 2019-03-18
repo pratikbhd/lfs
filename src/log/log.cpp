@@ -1,6 +1,7 @@
 #include <iostream>
 #include "lfs_enums.h"
 #include "log.h"
+#include <string>
 
 void Log::GetSuperBlock() {
     char buffer[FLASH_SECTOR_SIZE+2];
@@ -60,7 +61,7 @@ block_usage Log::GetBlockUsage(log_address address) {
 void Log::Read(log_address address, int length, char *buffer) {
     unsigned int offsetBytes = super_block.bytesPerBlock * address.blockOffset;
     if (offsetBytes + length > super_block.bytesPerSegment)
-        throw "Log::Read() - Cannot read more than a segment! - " + (offsetBytes + length);
+        throw "Log::Read() - Cannot read more than a segment! - " + std::to_string(offsetBytes + length);
 
     /*  Update Log End segment */
     if((*log_end).GetSegmentNumber() != address.segmentNumber) {
@@ -76,7 +77,7 @@ void Log::Read(log_address address, int length, char *buffer) {
 void Log::Write(log_address address, int length, char *buffer) {
     unsigned int offsetBytes = super_block.bytesPerBlock * address.blockOffset;
     if (offsetBytes + length > super_block.bytesPerSegment)
-        throw "Log::Write() - Cannot write more than a segment! - " + (offsetBytes + length);
+        throw "Log::Write() - Cannot write more than a segment! - " + std::to_string(offsetBytes + length);
 
     //TODO handle Block wear.
     unsigned int w = 0;
@@ -97,12 +98,12 @@ void Log::Write(log_address address, int length, char *buffer) {
 void Log::Free(log_address address){
     unsigned int offsetBytes = super_block.bytesPerBlock * address.blockOffset;
     if (offsetBytes + super_block.bytesPerBlock > super_block.bytesPerSegment)
-        throw "Log::Free() - block offset is out of bounds of segment! - " + address.blockOffset;
+        throw "Log::Free() - block offset is out of bounds of segment! - " + std::to_string(address.blockOffset);
 
     resetBlockUsage(address);
 
     /* blocks to be freed should be loaded to main memory */
-    if(!(*log_end).GetSegmentNumber() != address.segmentNumber) {
+    if((*log_end).GetSegmentNumber() != address.segmentNumber) {
         (*log_end).Flush();
         (*log_end).Load(address.segmentNumber);
     }

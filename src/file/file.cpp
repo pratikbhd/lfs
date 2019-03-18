@@ -8,7 +8,6 @@
 #include "file.hpp"
 #include "log.h"
 #include "segment.h"
-#include "directory.hpp"
 
 #define MAX(x,y) (x < y ? y : x)
 #define MIN(x,y) (x > y ? y : x)
@@ -38,7 +37,7 @@ int File::fileWrite(Inode *inode, int offset, int length, const void *buffer) {
     
     // Read whole file
     std::cout << "MSIZE: " << log.super_block.bytesPerBlock*4 << std::endl;
-    std::cout << "->size: " << GetMaxFileSize << std::endl;
+    std::cout << "->size: " << GetMaxFileSize() << std::endl;
 
     char data[GetMaxFileSize()];
     int writeIndex=0, writeOffset=0;
@@ -162,81 +161,69 @@ int File::fileRead(Inode *inode, int offset, int length, void *buffer) {
 }
 
 
-int fileCreate(const char *path, mode_t mode, struct fuse_file_info *fi) {
-	std::cout << "FileCreate: path " << path << std::endl;
-    Inode inode, dir;
+// int File::fileCreate(const char *path, mode_t mode, struct fuse_file_info *fi) {
+// 	std::cout << "FileCreate: path " << path << std::endl;
+//     Inode inode, dir;
 
-    int length = 0, returnval = 0;
-	char *name , *parent; 
-	SplitPathAtEnd(path, &parent, &name);
-	cout << "asds";
-	if (path[0] != '/') {
-		DEBUG(("FileCreate: path %s didn't start with '/'\n", path));
-		returnval = -ENOENT; // Must be at root directory
-		goto done;
-	}
+//     int length = 0, returnval = 0;
+// 	char *name , *parent; 
+	
+// 	SplitPathAtEnd(path, &parent, &name);
 
-	length = strlen(name);
-    if (length > NAME_MAX_LENGTH) {
-		DEBUG(("FileCreate: Name %s is too long\n", name));
-        returnval = ENAMETOOLONG; // path too long
-		goto done;
-    }
-    // Parse path path to find inode
-    int err = Directory_ReadPath(path, &inode);
+// 	if (path[0] != '/') {
+// 		std::cout << "FileCreate: path" << path << "didn't start with '/'" << std::endl;
+// 		return -ENOENT;
+// 	}
 
-    if (err) { // No inode found
-		// First make an inode
-		if (Directory_NewInode(&inode) == -EFBIG) {
-			DEBUG(("FileCreate: Cannot allocate new inode, ifile too large\n"));
-			returnval = -EFBIG;
-			goto done;
-		}
-		DEBUG(("FileCreate: Made new inode %d\n", inode.inum));
-		Directory_ToggleInumIsUsed(inode.inum);
+// 	length = strlen(name);
+//     if (length > static_cast<char>(fileLength::LENGTH)) {
+// 		std::cout << "FileCreate: Name" << name << "is too long" << std::endl;
+//         return ENAMETOOLONG;
+//     }
 
-//		for (i = 0; i < length; i++)
-//			inode.name[i] = name[i];
-//		inode.name[i] = '\0';
+//     // Parse path to find inode
+//     int err = ReadPath(path, &inode);
 
-		inode.fileSize = 0;
-		inode.fileType = convertMode(mode);
-		DEBUG(("FileCreate: Mode = %o\n", mode));
-		DEBUG(("FileCreate: inum = %d\n", inode.inum));
+//     if (err) {
+// 		// First make an inode
+// 		if (NewInode(&inode) == -EFBIG) {
+// 			DEBUG(("FileCreate: Cannot allocate new inode, ifile too large\n"));
+// 			returnval = -EFBIG;
+// 			goto done;
+// 		}
+// 		DEBUG(("FileCreate: Made new inode %d\n", inode.inum));
+// 		Directory_ToggleInumIsUsed(inode.inum);
 
-		inode.hardLinkCount = 1;
-		length = strlen(path);
+// 		inode.fileSize = 0;
+// 		inode.fileType = convertMode(mode);
+// 		DEBUG(("FileCreate: Mode = %o\n", mode));
+// 		DEBUG(("FileCreate: inum = %d\n", inode.inum));
 
-		err = Directory_ReadPath(parent, &dir);
-		if (err) {
-			DEBUG(("FileCreate: Error %s reading parent directory %s\n", strerror(err), parent));
-			returnval = err;
-			goto done;
-		}
-		err = Directory_AddEntry(&dir, &inode, name);
-		if (err) {
-			DEBUG(("FileCreate: Error %s adding entry %s in directory %s\n", strerror(err), name, parent));
-			returnval = err;
-			goto done;
-		}
-		File_Write(&inode, 0, 0, NULL);
-	//	File_Write(ifile, sizeof(Inode) * inode->inum, sizeof(Inode), inode);
-		/*
-		// Inodes per Block = BLOCK_SIZE / sizeof(Inode)
-		block = inode->inum / (BLOCK_SIZE / sizeof(Inode)) + inode->inum % (BLOCK_SIZE / sizeof(Inode));
-		// Write new inode. File is empty, so don't write that yet.
-		log_write_inode(ifile, block, sizeof(*inode), (char *) inode); 
-		*/
-    } 
-	DEBUG(("FileCreate: Returning from creating \"%s\"\n", path));
-	printInode(&inode);
-	returnval = File_Open(path, fi);
-done:
-	debug_free(parent);
-	debug_free(name);
-    return returnval;
+// 		length = strlen(path);
+
+// 		err = Directory_ReadPath(parent, &dir);
+// 		if (err) {
+// 			DEBUG(("FileCreate: Error %s reading parent directory %s\n", strerror(err), parent));
+// 			returnval = err;
+// 			goto done;
+// 		}
+// 		err = Directory_AddEntry(&dir, &inode, name);
+// 		if (err) {
+// 			DEBUG(("FileCreate: Error %s adding entry %s in directory %s\n", strerror(err), name, parent));
+// 			returnval = err;
+// 			goto done;
+// 		}
+// 		File_Write(&inode, 0, 0, NULL);
+//     } 
+// 	DEBUG(("FileCreate: Returning from creating \"%s\"\n", path));
+// 	printInode(&inode);
+// 	returnval = File_Open(path, fi);
+// done:
+// 	debug_free(parent);
+// 	debug_free(name);
+//     return returnval;
     
-}
+// }
 
 unsigned int File::GetMaxFileSize() {
 	return (log.super_block.bytesPerBlock * (4 + (log.super_block.bytesPerBlock)/sizeof(log_address)));

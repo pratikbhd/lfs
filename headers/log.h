@@ -6,13 +6,13 @@
 //Avoid invoking Copy/Reallocate this class in the mean time.
 //Should be fine since this class is meant to serve as a Singleton. Only pass by reference.
 
-typedef struct {
-    char lfsFile[256];
-    int cacheSize;
+struct inputState{
+    std::string lfsFile;
+    // int cacheSize;
     int interval;
-    int startCleaner;
-    int stopCleaner;
-} inputState;
+    // int startCleaner;
+    // int stopCleaner;
+};
 
 class Log {
     private:

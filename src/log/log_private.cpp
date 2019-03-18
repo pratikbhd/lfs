@@ -15,6 +15,11 @@ unsigned int Log::summaryBlockBytes(){
 }
 
 log_address Log::getNextFreeBlock(log_address current){
+
+    if (current.segmentNumber == 0) {
+        current.segmentNumber = 1; 
+    }
+
     if(current.blockOffset+1 >= super_block.blocksPerSegment) {
         current.blockOffset = summaryBlockSize();
         current.segmentNumber = current.segmentNumber + 1;

@@ -17,20 +17,21 @@
 
 int main(int argc, char *argv[])
 {
-    static char *flash_file = "flash_test";
-    static long cache = 8;
-    static long interval = 1;
+    // static long cache = 8;
+    static long interval = 1000;
     static long start = 4;
     static long stop = 8;
 
-    inputState *state = new inputState;
-    memcpy(state->lfsFile, flash_file, strlen(flash_file));
-    state->cacheSize = cache;
-    state->startCleaner = start;
-    state->stopCleaner = stop;
-    state->interval = interval;
+    inputState state = inputState();
+    state.lfsFile = "flash_test";
+    state.interval = interval;
+    // memcpy(state->lfsFile, flash_file, strlen(flash_file));
+    // state->cacheSize = cache;
+    // state->startCleaner = start;
+    // state->stopCleaner = stop;
+    // state->interval = interval;
 
-    Directory directory = new Directory;
+    Directory directory = Directory((char*)state.lfsFile.c_str());
 
     directory.Initialize();
 

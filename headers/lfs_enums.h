@@ -1,3 +1,5 @@
+#pragma once
+
 enum class usage {
     FREE = 0,
     INUSE = 1
