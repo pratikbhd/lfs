@@ -23,8 +23,6 @@ log_address Log::getNextFreeBlock(log_address current){
     if(current.blockOffset+1 >= super_block.blocksPerSegment) {
         current.blockOffset = summaryBlockSize();
         current.segmentNumber = current.segmentNumber + 1;
-        //TODO: this line should happen right before the checkpoint event.
-        //super_block.usedSegments++;
     } else {
         current.blockOffset = current.blockOffset + 1;
         current.segmentNumber = current.segmentNumber;
@@ -51,6 +49,7 @@ log_address Log::getNewLogEnd(){
 
     if (log_end_address.segmentNumber != finder.segmentNumber){
         operation_count = max_operations; //force the checkpoint block to flash
+        super_block.usedSegments++;
     }
 
     log_end_address = finder;
@@ -88,7 +87,11 @@ void Log::checkpoint() {
         return;
     }
     
-    /* TODO save ifile */
+    res = Flash_Write(flash, LOG_IFILE_OFFSET, 1, &iFile);
+    if (res) {
+        std::cout << "iFile write failed";
+        return;
+    }
 
     res = Flash_Write(flash, LOG_SUPERBLOCK_OFFSET, 1, &super_block);
     if (res) {

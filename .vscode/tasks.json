@@ -47,6 +47,22 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "build lfs",
+            "type": "shell",
+            "command": "g++",
+            "args" :[
+                "-g", "-o", "LFS", "-I", "headers", "src/LFS/LFS.cpp", 
+                "src/dir/directory.cpp", "src/file/file.cpp",
+                "src/log/log.cpp", "src/log/log_private.cpp", 
+                "src/log/segment.cpp", "src/log/superblock.cpp", "src/log/checkpoint.cpp",
+                "src/flash/flash.c"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }

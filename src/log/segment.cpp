@@ -48,6 +48,11 @@ void Segment::Erase(){
         std::cout << "Erasing the segment failed";
 }
 
+void Segment::ForceFlush(){
+    loaded = true;
+    Flush();
+}
+
 void Segment::Flush(){
     //only an active segment is written back to cache. This segment should be the log end.
     if(!active) return;
