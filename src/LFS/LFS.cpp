@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     Directory directory = Directory((char*)state.lfsFile.c_str());
 
     directory.Initialize();
-    const char *path = "/users";
+    const char *path = "/FlashDir";
     directory.makeDirectory(path, S_ISUID);
 
     directory.file.log.Flush();
