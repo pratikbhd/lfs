@@ -43,6 +43,18 @@ json GetiFile(Log *l){
     return json_i;
 }
 
+json GetIndirectBlocks(Log *l, Inode in){
+    json indirect;
+    for(int i= 4; i < (*l).super_block.blocksPerSegment; i++) {
+        log_address la = (*l).GetLogAddress(in, i);
+        indirect.push_back(json{{"block", i}, 
+        {"segmentNumber", la.segmentNumber},
+        {"blockOffset", la.blockOffset}
+        });
+    }
+    return indirect;
+}
+
 int main (int argc, char **argv)
 {
     if (argc != 3) {
@@ -61,15 +73,38 @@ int main (int argc, char **argv)
         status["checkpoints"] = GetCheckpoints(&log);
         status["iFile"] = GetiFile(&log);
         Flash_Close(log.flash);
-    } else if(strcmp(argv[2], "file")==0)
-        //TODO
-        ;
+    } else if(strcmp(argv[2], "file")==0){
+        Log log = Log();
+        unsigned int blocks;
+        log.flash = Flash_Open(argv[1], 0, &blocks);
+        status["superblock"] = GetSuperBlock(&log);
+        log.InitializeCache();
+        status["checkpoints"] = GetCheckpoints(&log);
+        status["iFile"] = json{{"inode", GetiFile(&log)}, {"blk",GetIndirectBlocks(&log, log.iFile)}};
+
+        int i = 0;
+        json inodeJsons;
+        while(log.GetLogAddress(log.iFile, i).segmentNumber != 0) {
+            Inode buffer[log.super_block.bytesPerBlock];
+            log_address la = log.GetLogAddress(log.iFile, i);
+            log.Read(la, log.super_block.bytesPerBlock, (char *)buffer);
+            int j = 0;
+            for(; (j * sizeof(Inode)) < log.super_block.bytesPerBlock; j++) {
+                Inode in = buffer[j];
+                inodeJsons.push_back(json{{"inode", in}, {"blk",GetIndirectBlocks(&log, in)}});
+            }
+            i++;
+        }
+
+        status["inodes"] = inodeJsons;
+    }
     else
         printf("{}\n");
 
     std::string result = status.dump(4);
 
-    std::ofstream jsonFile("lfs.json", std::ios_base::trunc);
+    std::string mode(argv[2]);
+    std::ofstream jsonFile("lfs-"+mode+".json", std::ios_base::trunc);
     jsonFile << result;
     jsonFile.close();
     std::cout << result << std::endl;
