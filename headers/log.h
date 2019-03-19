@@ -7,7 +7,7 @@
 //Should be fine since this class is meant to serve as a Singleton. Only pass by reference.
 
 struct inputState{
-    std::string lfsFile;
+    char* lfsFile;
     // int cacheSize;
     int interval;
     // int startCleaner;

@@ -19,21 +19,21 @@ class Directory {
 		/*
  		* Initializes the directory structure
  		*/
-		// void* Initialize(struct fuse_conn_info*);
-		void* Initialize();
+		void* Initialize(struct fuse_conn_info*);
+		// void* Initialize();
 
 		/**
 		 * Just a wrapper for the fileRead function in the file layer. It reads in 'length' bytes of data into the buffer from the 'path'
 		 * starting at the 'offset'
 		 */
-		int Read(const char *path, char *buf, size_t length, off_t offset,
+		int directoryRead(const char *path, char *buf, size_t length, off_t offset,
 	   			struct fuse_file_info *fi);
 
 		/**
 		 * Just a wrapper for the fileWrite function in the file layer. It writes out 'length' bytes of data from the buffer to the file at 'path',
 		 * starting at the provided 'offset'
 		 */
-		int Write(const char *path, const char *buf, size_t length, off_t offset,
+		int directoryWrite(const char *path, const char *buf, size_t length, off_t offset,
 	   			struct fuse_file_info *fi);
 
 		/**
@@ -42,7 +42,7 @@ class Directory {
 		 */
 		int makeDirectory(const char *path, mode_t mode);
 
-		int Readdir(const char *path, void *buf, fuse_fill_dir_t filler, 
+		int directoryReaddir(const char *path, void *buf, fuse_fill_dir_t filler, 
 			off_t offset, struct fuse_file_info *fi);
 
 		int innerReadDir(char *, int *, char *, int *);
