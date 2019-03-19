@@ -38,7 +38,10 @@ int main(int argc, char *argv[])
     directory.makeDirectory(path, S_ISUID);
 
     directory.file.log.Flush();
-    //directory.Read(path, S_ISUID);
+    
+    // char buffer[sizeof(Inode) + 1];
+    // const char *path = "/users";
+    // directory.Read(path, buffer, sizeof(Inode) + 1, 0, NULL);
 
     // /* Prepare FUSE args */
 

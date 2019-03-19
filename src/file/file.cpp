@@ -289,7 +289,7 @@ int File::CreateInode(Inode *inode) {
 	length = ifile.fileSize / sizeof(Inode);
 	for (i = 0; i < length; i++) {
 		// Check if any inode's filetype has been assigned to NO_FILE which suggests that it is a free inode
-		if (inodes[i].fileType == static_cast<char>(fileTypes::NO_FILE)) {
+		if (inodes[i].fileType == static_cast<char>(fileTypes::NO_FILE) && inodes[i].inum != static_cast<unsigned int>(reserved_inum::NOINUM)) {
 			std::cout << "New inode is" << i << std::endl;
 			memcpy(inode, inodes + i, sizeof(Inode));
 			return 0;
