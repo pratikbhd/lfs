@@ -51,5 +51,5 @@ class File {
     /**
     * Returns a pointer to the inode with <inum>.
     */
-    Inode *ReturnInode(int inum);
+    Inode ReturnInode(int inum);
 };

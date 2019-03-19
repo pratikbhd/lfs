@@ -120,7 +120,7 @@ int File::fileRead(Inode *inode, int offset, int length, char *buffer) {
 	total = length;
 
 	char block[log.super_block.bytesPerBlock];
-	char *bufferPosition = static_cast<char*>(buffer);
+	char *bufferPosition = buffer;
 
 	int readCount = 0
 	  , remainingBlockPart = offset % log.super_block.bytesPerBlock
@@ -135,7 +135,6 @@ int File::fileRead(Inode *inode, int offset, int length, char *buffer) {
 
         // Copy to bufferPosition the contents of block after the offset, but at most length bytes
 		readCount = (length > log.super_block.bytesPerBlock-remainingBlockPart ? log.super_block.bytesPerBlock-remainingBlockPart : length);
-		if (block) return 0;
 		memcpy(bufferPosition, block + remainingBlockPart, readCount);
 
 		bufferPosition += readCount;
@@ -173,7 +172,7 @@ int File::fileCreate(const char *path, mode_t mode, struct fuse_file_info *fi) {
 		std::cout << "fileCreate: <path>" << path << "does not begin with '/'" << std::endl;
 	}
 
-	char name[static_cast<char>(fileLength::LENGTH)+1] , parent[i+1];
+	char name[static_cast<unsigned int>(fileLength::LENGTH)+1] , parent[i+1];
 	
 	// We populate the parent string
 	for (j = 0; j < i; j++) {
@@ -193,7 +192,7 @@ int File::fileCreate(const char *path, mode_t mode, struct fuse_file_info *fi) {
 
 	// Now, populate the child name
 	j += 1;
-	for (i = 0; j < length && i < static_cast<char>(fileLength::LENGTH); j++, i++) {
+	for (i = 0; j < length && i < static_cast<unsigned int>(fileLength::LENGTH); j++, i++) {
 		name[i] = path[j];
 	} name[i] = '\0';
 
@@ -206,7 +205,7 @@ int File::fileCreate(const char *path, mode_t mode, struct fuse_file_info *fi) {
 	}
 
 	length = strlen(name);
-    if (length > static_cast<char>(fileLength::LENGTH)) {
+    if (length > static_cast<unsigned int>(fileLength::LENGTH)) {
 		std::cout << "FileCreate: Name" << name << "is too long" << std::endl;
         return ENAMETOOLONG;
 	}
@@ -339,7 +338,7 @@ int File::ReadPath(const char *path, Inode *inode) {
 	
 	std::cout << "ReadPath: path" << path << std::endl;	
 	
-	char directory[GetMaxFileSize()], name[static_cast<char>(fileLength::LENGTH)+1];
+	char directory[GetMaxFileSize()], name[static_cast<unsigned int>(fileLength::LENGTH)+1];
 	int inum, length, offset, i, error 
 		, pathLength = strlen(path);
 
@@ -349,19 +348,19 @@ int File::ReadPath(const char *path, Inode *inode) {
 		return -EINVAL;
 	}
 	
-	Inode *directoryInode = ReturnInode(static_cast<char>(reserved_inum::ROOT));
+	Inode directoryInode = ReturnInode(static_cast<char>(reserved_inum::ROOT));
 	
 	// Check if the path is just the root
 	if (path[1] == '\0') {
 		std::cout << "Read path on directory" << path <<  std::endl;
-		std::cout << "Root->inum =" <<  directoryInode->inum << ", length =" << directoryInode->fileSize << std::endl;
-		memcpy(inode, directoryInode, sizeof(Inode));
+		std::cout << "Root->inum =" <<  directoryInode.inum << ", length =" << directoryInode.fileSize << std::endl;
+		memcpy(inode, &directoryInode, sizeof(Inode));
 		return 0;
 	}
 
 	// Read directory for next part of path. Initially directory is the root
 	offset = 1;
-	length = fileRead(directoryInode, 0, directoryInode->fileSize, directory);
+	length = fileRead(&directoryInode, 0, directoryInode.fileSize, directory);
 	std::cout << "ReadPath: directory is of length" << length << std::endl;
 	
 	// Start debugging
@@ -394,11 +393,11 @@ int File::ReadPath(const char *path, Inode *inode) {
 		
 		// From the above for loop, the value of i will have reached the end of the name and should point to either '/' or '\0'
 		if ((path + offset)[i] == '\0' || (path + offset)[i+1] == '\0') { 
-			std::cout << "ReadPath: Returning inode" <<  directoryInode->inum << std::endl;
-			memcpy(inode, directoryInode, sizeof(Inode));
+			std::cout << "ReadPath: Returning inode" <<  directoryInode.inum << std::endl;
+			memcpy(inode, &directoryInode, sizeof(Inode));
 			return 0;
 		}
-		else if (directoryInode->fileType != static_cast<char>(fileTypes::DIRECTORY)) {
+		else if (directoryInode.fileType != static_cast<char>(fileTypes::DIRECTORY)) {
 			std::cout << "ReadPath: Link" << name << "in path" << name << "not a directory" << std::endl;
 			return -ENOTDIR;
 		}
@@ -406,25 +405,25 @@ int File::ReadPath(const char *path, Inode *inode) {
 		// The next offset will be the next directory in the path. The value of i will put us at the end of the current directory.
 		// i+1 is done to include the '/' between two directories in the path
 		offset += i + 1;
-		length = fileRead(directoryInode, 0, directoryInode->fileSize, directory);
+		length = fileRead(&directoryInode, 0, directoryInode.fileSize, directory);
 	}
 
 	return -ENOENT;
 }
 
-Inode *File::ReturnInode(int inum) {
+Inode File::ReturnInode(int inum) {
 	// Inode *inode = (Inode*) debug_malloc(sizeof(Inode)), //TODO: Figure this out
-	Inode *inode,
+	Inode inode = Inode(),
 		ifile = log.iFile;
 
-	int length = fileRead(&ifile, inum*sizeof(Inode), sizeof(Inode), (char*)inode);  
-	std::cout << "GetInode: Read" << length << "bytes from ifile, inum =" << inum << "inode->inum =" << inode->inum << std::endl;
+	int length = fileRead(&ifile, inum*sizeof(Inode), sizeof(Inode), (char*)&inode);  
+	std::cout << "GetInode: Read" << length << "bytes from ifile, inum =" << inum << "inode->inum =" << inode.inum << std::endl;
 	return inode;
 }
 
 int File::ReturnInodeFromBuffer(const char *buf, int length, const char *name, int *inum) {
 	int num, offset;
-	char temporaryName[static_cast<char>(fileLength::LENGTH)+1];
+	char temporaryName[static_cast<unsigned int>(fileLength::LENGTH)+1];
 	
 	// There is no name
 	if (name[0] == '\0') {
@@ -467,7 +466,7 @@ int File::NewEntry(Inode *directoryInode, Inode *fileInode, const char *fileName
     std::cout << "dirfilesize:" <<  directoryInode->fileSize << std::endl;
     
 	char buffer[directoryInode->fileSize];
-    char name[static_cast<char>(fileLength::LENGTH)+1];
+    char name[static_cast<unsigned int>(fileLength::LENGTH)+1];
 
 	std::cout << "AddEntry: length =" << length << std::endl;
 	fileRead(directoryInode, 0, directoryInode->fileSize, buffer);  	

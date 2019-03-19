@@ -34,8 +34,11 @@ int main(int argc, char *argv[])
     Directory directory = Directory((char*)state.lfsFile.c_str());
 
     directory.Initialize();
-    const char *path = "/Users/pratikbhandari/Documents/testDir";
+    const char *path = "/users";
     directory.makeDirectory(path, S_ISUID);
+
+    directory.file.log.Flush();
+    //directory.Read(path, S_ISUID);
 
     // /* Prepare FUSE args */
 

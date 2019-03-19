@@ -309,23 +309,6 @@ bool Log::Write(Inode *target, unsigned int blockNumber, int length, const char*
 }
 
 
-//Done:
-//Internal:
-//log_set_block_free -> resetBlockUsage()
-//log_set_block -> setBlockUsage()
-//log_write -> Write(log_address address, int length, char *buffer)
-//log_get_higher_addr() -> getNextFreeBlock
-//log_checkpoint_update() -> checkpoint()
-//log_get_next_address() -> getNewLogEnd
-//
-//Required by file layer:
-//log_write_inode -> Write(Inode *in, unsigned int blockNumber, int length, const char* buffer)
-//log_set_inode_addr -> UpdateInode()
-//log_free -> Free()
-//log_get_inode_addr -> GetLogAddress(Inode i, int index)
-//log_create_addr -> GetLogAddress(unsigned int segment_number, unsigned int block_number)
-//log_read -> Read()
-//
 //TODO:
 //Log::Read -> Should support caching recently read segments. A round robin array should suffice.
 //Log::Write -> should report wear and callers should handle this.
