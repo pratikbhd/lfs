@@ -111,3 +111,6 @@ The lfsck also has a python component that parses the json to python objects and
 ### Contributors
 - Rahul Roy Mattam
 - Pratik Bhandari
+
+
+g++ -std=c++14 -g -Og `pkg-config fuse --cflags --libs` -o LFS -I headers src/LFS/LFS.cpp src/dir/directory.cpp src/file/file.cpp src/log/log.cpp src/log/log_private.cpp src/log/segment.cpp src/log/superblock.cpp src/log/checkpoint.cpp src/flash/flash.c

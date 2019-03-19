@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <fuse.h>
 #include <iostream>
 #include <exception>
 #include <limits.h>
@@ -14,8 +15,8 @@ Directory::Directory(char* lfsFile): file(File(lfsFile)) {
 }
 
 //This function initializes the directory structure
-// void* Directory::Initialize(struct fuse_conn_info *conn) {	
-void* Directory::Initialize() {	
+void* Directory::Initialize(struct fuse_conn_info *conn) {	
+// void* Directory::Initialize() {	
 
 
 	Inode iFile = file.log.iFile; // Inode of the Ifile
@@ -90,7 +91,7 @@ int Directory::makeDirectory(const char *path, mode_t mode) {
 	return 0;
 }
 
-int Directory::Read(const char *path, char *buffer, size_t length, off_t offset,
+int Directory::directoryRead(const char *path, char *buffer, size_t length, off_t offset,
                 struct fuse_file_info *fi) {
     std::cout << "DirectoryRead: length =" << length << "offset" << offset << std::endl;
     Inode inode;
@@ -104,7 +105,7 @@ int Directory::Read(const char *path, char *buffer, size_t length, off_t offset,
     return val;
 }
 
-int Directory::Write(const char *path, const char *buffer, size_t length, off_t offset,
+int Directory::directoryWrite(const char *path, const char *buffer, size_t length, off_t offset,
                 struct fuse_file_info *fi) {
 
 				std::cout << "DirectoryWrite" << std::endl;
@@ -120,7 +121,7 @@ int Directory::Write(const char *path, const char *buffer, size_t length, off_t 
         return val;
 }
 
-int Directory::Readdir(const char *path, 
+int Directory::directoryReaddir(const char *path, 
 					  void *buf, 
 					  fuse_fill_dir_t filler, 
        				  off_t offset, 
