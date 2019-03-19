@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <stdbool.h>
+#include<iostream>
 
 #include "directory.hpp"
 #include "file.hpp"
@@ -129,6 +130,7 @@ int main(int argc, char *argv[])
 
     // directory.file.log.Flush();
     
+    //test for read dir
     // char buffer[sizeof(Inode) + 1];
     // const char *path = "/users";
     // directory.Read(path, buffer, sizeof(Inode) + 1, 0, NULL);

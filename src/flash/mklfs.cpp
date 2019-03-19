@@ -166,7 +166,7 @@ int main(int argc, char** argv)
 	long no_of_segments = 50;
 	long blocks_per_segment = 32;
     long sectors_per_block = 2;
-    long wear_limit = 1000;
+    long wear_limit = 10000;
     char* file_name;
 
     // Get the flash file name
