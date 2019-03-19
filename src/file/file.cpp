@@ -24,10 +24,6 @@ File::File(char* lfsFile) {
     log.GetiFile();
 }
 
-/**
- * Write <length> bytes of the file associated with <inode>, starting at <offset>.
- * The data written is taken from <buf>.
- */
 int File::fileWrite(Inode *inode, int offset, int length, const void *buffer) {
     if (offset + length > GetMaxFileSize()) {
 		std::cout << "fileWrite: offset" << offset << "length" << length << "greater than max size" << GetMaxFileSize() << std::endl;
@@ -35,14 +31,14 @@ int File::fileWrite(Inode *inode, int offset, int length, const void *buffer) {
     }
     
     // Read whole file
-    std::cout << "MSIZE: " << log.super_block.bytesPerBlock*4 << std::endl;
-    std::cout << "->size: " << GetMaxFileSize() << std::endl;
+    std::cout << "Maximum Size: " << log.super_block.bytesPerBlock*4 << std::endl;
+    std::cout << "size: " << GetMaxFileSize() << std::endl;
 
     char data[GetMaxFileSize()];
     int writeIndex=0, writeOffset=0;
 
     while (log.GetLogAddress(*inode, writeIndex).segmentNumber != 0 ) { //BLOCK_NULL_ADDR) {
-        std::cout << "->woff:" << writeOffset << std::endl;
+        std::cout << "Write offset:" << writeOffset << std::endl;
         std::cout << "bytesPerBlock" << log.super_block.bytesPerBlock << std::endl;
 
         log.Read(log.GetLogAddress(*inode, writeIndex), log.super_block.bytesPerBlock, data+writeOffset);
@@ -55,11 +51,11 @@ int File::fileWrite(Inode *inode, int offset, int length, const void *buffer) {
 	}	
     
     // write
-    std::cout << "wh:" << data << std::endl;
-    std::cout << "wo:" << data+offset << std::endl;
-    std::cout << "bu:" << buffer << std::endl;
-    std::cout << "le:" << length << std::endl;
-    std::cout << "of:" << offset << std::endl;
+    std::cout << "Data:" << data << std::endl;
+    std::cout << "Data+offset:" << data+offset << std::endl;
+    std::cout << "Buffer:" << buffer << std::endl;
+    std::cout << "Length:" << length << std::endl;
+    std::cout << "Offset:" << offset << std::endl;
 
     memcpy((data+offset), buffer, length);
    
@@ -70,7 +66,7 @@ int File::fileWrite(Inode *inode, int offset, int length, const void *buffer) {
     // Just debugging
 	int idx = 0;
 	if (data[0] == '\0') {
-		std::cout << "First char is nul\n" << std::endl;
+		std::cout << "First character is null\n" << std::endl;
     }
     for (idx = 0; idx < inode->fileSize; idx++) {
         if (idx < inode->fileSize) {
@@ -80,7 +76,6 @@ int File::fileWrite(Inode *inode, int offset, int length, const void *buffer) {
         std::cout << "loop i: %d\n" << idx << std::endl;
         std::cout << data[idx] << std::endl;
     }
-    std::cout << "after\n" << std::endl;
 
 	// Write entire file	
 	log.Write(inode,
@@ -92,10 +87,6 @@ int File::fileWrite(Inode *inode, int offset, int length, const void *buffer) {
     return length;
 }
 
-/**
- * Reads <length> bytes from file <inode> beginning at <offset>, then stores them
- * in <buffer>. 
- */ 
 int File::fileRead(Inode *inode, int offset, int length, char *buffer) {
 	int total;
 	
@@ -225,7 +216,6 @@ int File::fileCreate(const char *path, mode_t mode, struct fuse_file_info *fi) {
 		}
 
 		std::cout << "FileCreate: Made new inode" << inode.inum << std::endl;
-		// Directory_ToggleInumIsUsed(inode.inum);
 
 		inode.fileSize = 0;
 
@@ -270,15 +260,7 @@ int File::fileCreate(const char *path, mode_t mode, struct fuse_file_info *fi) {
     return returnValue;
 }
 
-
 int File::CreateInode(Inode *inode) {
-	/**
- 	* Returns the least numbered unused inode. If all inodes in the ifile are in use,
- 	* then a new inode is appended to the ifile. 
- 	*
- 	* If there are no available inodes and the ifile takes up FILE_MAX_SIZE, then
- 	* the error code EFBIG is returned.
- 	*/
     std::cout << "Creating a new inode" << std::endl;
 
 	int	i, length;
@@ -309,15 +291,9 @@ int File::CreateInode(Inode *inode) {
 	std::cout << "CreateInode: Writing inode" << inode->inum << "to ifile" << std::endl;
 	fileWrite(&ifile, ifile.fileSize, sizeof(Inode), inode);
 	std::cout << "CreateInode: Finished writing inode" << inode->inum << std::endl;
-	//TODO: free *inodes ?? 
 	return 0;
 }
 
-
-/**
- * Opens a file for reading. Essentially just checks for existence. The inode is stored
- * in fi->fh.
- */
 int File::fileOpen(const char *path, struct fuse_file_info *fi) {
 	std::cout << "FileOpen" << path << std::endl;
     Inode inode;
@@ -330,11 +306,6 @@ int File::fileOpen(const char *path, struct fuse_file_info *fi) {
     return 0;
 }
 
-/**
- * Stores an inode for the file specified by path in the inode parameter, or NULL if no such file exists.
- * In that case, -ENOENT is returned, otherwise 0. Space is allocated for <inode> and must be freed by
- * the caller.
- */
 int File::ReadPath(const char *path, Inode *inode) {
 	
 	std::cout << "ReadPath: path" << path << std::endl;	
@@ -413,7 +384,6 @@ int File::ReadPath(const char *path, Inode *inode) {
 }
 
 Inode *File::ReturnInode(int inum) {
-	// Inode *inode = (Inode*) debug_malloc(sizeof(Inode)), //TODO: Figure this out
 	Inode *inode,
 		ifile = log.iFile;
 
@@ -426,7 +396,7 @@ int File::ReturnInodeFromBuffer(const char *buf, int length, const char *name, i
 	int num, offset;
 	char temporaryName[static_cast<char>(fileLength::LENGTH)+1];
 	
-	// There is no name
+	// Check if name does not exist
 	if (name[0] == '\0') {
 		std::cout << "Null name in 'ReturnInodeFromBuffer'" << std::endl;
 		return -ENOENT;
@@ -520,4 +490,55 @@ int File::NewEntry(Inode *directoryInode, Inode *fileInode, const char *fileName
 
 unsigned int File::GetMaxFileSize() {
 	return (log.super_block.bytesPerBlock * (4 + (log.super_block.bytesPerBlock)/sizeof(log_address)));
+}
+
+
+int File::fileGetattr(const char *path, struct stat *stbuf) {
+	std::cout << "Getattr being called." << std::endl;
+    Inode fileInode;
+    int error = ReadPath(path, &fileInode);
+	
+	// Check if the path does not exist or is created
+	if (error) {
+		std::cout << "ENOENT in Getattr" << std::endl;
+		return error;
+	}
+
+	// Initialize the structure 'stbuf' to 0
+	memset(stbuf, 0, sizeof(*stbuf));
+
+	// Check if the inode of the 'path' is set to some value i.e. directory or file
+	if (fileInode.fileType == static_cast<unsigned int>(fileTypes::NO_FILE)) {
+		std::cout << "NO_FILE in Getattr, inum =" << fileInode.inum << "path =" << path << std::endl;
+		return -ENOENT;
+	}
+
+    std::cout << "Getattr: Finished readpath" << std::endl;
+
+	// Start setting the values of the stbuf
+	stbuf->st_size = fileInode.fileSize;
+    stbuf->st_blksize = log.super_block.bytesPerBlock;
+    stbuf->st_ino = fileInode.inum;
+
+	// Check the file type and assign accordingly
+	switch (fileInode.fileType) {
+		case static_cast<unsigned int>(fileTypes::DIRECTORY):
+		    stbuf->st_mode |= S_IFDIR;
+			break;
+		case static_cast<unsigned int>(fileTypes::PLAIN_FILE):
+			stbuf->st_mode |= S_IFREG;
+			break;
+		case static_cast<unsigned int>(fileTypes::SYM_LINK):
+			stbuf->st_mode |= S_IFLNK;
+			break;
+	}
+
+	// Assign the file permissions
+	// For now, full permissions are given to all user types
+	stbuf->st_mode |= S_IRWXU;
+	stbuf->st_mode |= S_IRWXG;
+	stbuf->st_mode |= S_IRWXO;
+
+	std::cout << "Leaving getAttr" << std::endl;
+	return 0;
 }
