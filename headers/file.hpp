@@ -69,7 +69,7 @@ class File {
     /**
     * This function returns a pointer to the inode having 'inum' 
     */
-    Inode *ReturnInode(int inum);
+    Inode ReturnInode(int inum);
 
     /**
     * This function fills in the contents of the structure 'stbuf' of the FUSE.

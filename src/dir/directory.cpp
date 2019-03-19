@@ -120,6 +120,74 @@ int Directory::Write(const char *path, const char *buffer, size_t length, off_t 
         return val;
 }
 
+int Directory::Readdir(const char *path, 
+					  void *buf, 
+					  fuse_fill_dir_t filler, 
+       				  off_t offset, 
+					  struct fuse_file_info *finfo) {
+
+	int   i, length, count, nRead, inum;
+
+	struct stat st;
+
+  char buffer[static_cast<unsigned int>(fileLength::LENGTH)], 
+				name[256];
+
+	Inode dirInode;
+	int error = file.ReadPath(path, &dirInode);
+	
+	if (error) {
+		std::cout << "Readdir: Could not find path " << path << std::endl;
+		return error;
+	} else if (dirInode.fileType != static_cast<char>(fileTypes::DIRECTORY)) {
+		std::cout << "Readdir: " << path << "is not a directory. Filetype is " << dirInode.fileType << std::endl;
+		return -ENOTDIR;
+	}
+	
+	st.st_ino = dirInode.inum;
+	file.fileRead(&dirInode, 0, dirInode.fileSize, buffer);
+  filler(buf, ".", &st, 0);
+  filler(buf, "..", &st, 0);
+	
+	std::cout << "Readdir: Filled buf with . .." << std::endl;
+	count = 0;
+	length = dirInode.fileSize;
+	std::cout << "Readdir: Dir " << path << "has size " << dirInode.fileSize << std::endl;
+    
+	
+  for (i = 0; i < length; i += nRead) {
+		innerReadDir(buffer + i, &inum, name, &nRead); 
+		st.st_ino = inum;
+		filler(buf, name, &st, 0);
+		count++;
+  	}
+	
+	std::cout << "Readdir: Return, " << count << std::endl;
+  return 0;
+}
+
+int Directory::innerReadDir(char *directory, int *inum, char *name, int *lengthRead) {
+	
+	std::cout << "internalReadDir" << std::endl;
+	char *startName = directory + sizeof(int);
+	int i;
+	
+	memcpy(inum, directory, sizeof(int));
+	*lengthRead = sizeof(int);
+	std::cout << "lengthRead starts " << *lengthRead << std::endl;
+	
+	for (i = 0; startName[i] != '\0'; i++, (*lengthRead)++) {
+		std::cout << "Iterate readDir, read char " << startName[i] << std::endl;
+		name[i] = startName[i];
+	}
+
+	name[i] = '\0';
+	(*lengthRead)++;
+	
+	std::cout << "internalReadDir: Return, lengthRead = " << *lengthRead << std::endl;
+	return 0;
+}
+
 /**
  * This function inverts the number corresponding to the inum in the inodes_used array (of 1s and 0s).
  * TODO: Just an idea right now. Might be useful in Phase 2

@@ -382,8 +382,8 @@ int File::ReadPath(const char *path, Inode *inode) {
 	return -ENOENT;
 }
 
-Inode *File::ReturnInode(int inum) {
-	Inode *inode,
+Inode File::ReturnInode(int inum) {
+	Inode inode,
 		ifile = log.iFile;
 
 	int length = fileRead(&ifile, inum*sizeof(Inode), sizeof(Inode), (char*)&inode);  
