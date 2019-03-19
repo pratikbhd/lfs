@@ -57,12 +57,7 @@ int Directory::makeDirectory(const char *path, mode_t mode) {
 
 	// Try to read the file/directory specified by the path that is given in the makeDirectory argument
 	int error = 0;
-	try{
-	 error = file.ReadPath(path, &directoryInode);	
-	} catch (std::exception& ex){
-		std::cout << " makeDirectory: Directory does not exist. : "<< ex.what();
-	}
-
+	error = file.ReadPath(path, &directoryInode);
 	// If no error shows up, it means the file/directory in the path is already present. Throw an error in this case
 	if (!error) {
 		std::cout << "MakeDirectory: File" << path << "already exists" << std::endl;

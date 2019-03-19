@@ -37,6 +37,12 @@ int main(int argc, char *argv[])
     const char *path = "/FlashDir";
     directory.makeDirectory(path, S_ISUID);
 
+    directory.file.log.Flush();
+    
+    // char buffer[sizeof(Inode) + 1];
+    // const char *path = "/users";
+    // directory.Read(path, buffer, sizeof(Inode) + 1, 0, NULL);
+
     // /* Prepare FUSE args */
 
     // char 	**nargv = NULL;
