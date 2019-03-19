@@ -11,6 +11,8 @@ class File {
     Log log;
     File(char* lfsFile); // Need to pass the flashfile
 
+    ~File(); //Force Flush the log layer to flash and close flash.
+
     /**
     * This function writes out 'length' bytes of information from the buffer and into the file starting at 'offset'
     * The file to be written to is specified by the 'inode'

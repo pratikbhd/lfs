@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <stdbool.h>
+#include<iostream>
 
 #include "directory.hpp"
 #include "log.h"
@@ -50,13 +51,12 @@ int main(int argc, char *argv[])
     // Parse path to find inode
     Inode inode;
     int error = directory.file.ReadPath(path3, &inode);
-    //char buffer[4] = "hel";
+    //char buffer[6] = "hel";
     //directory.file.fileWrite(&inode, 0, 4, buffer);
 
-    char readBuffer[4];
-    directory.file.fileRead(&inode, 0, 4, readBuffer);
-
-    directory.file.log.Flush();
+    char readBuffer[11];
+    directory.file.fileRead(&inode, 0, 11, readBuffer);
+    std::cout <<"done";
 
 
 

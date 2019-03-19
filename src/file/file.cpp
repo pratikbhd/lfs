@@ -24,6 +24,11 @@ File::File(char* lfsFile) {
     log.GetiFile();
 }
 
+File::~File(){
+	log.Flush();
+	Flash_Close(log.flash);
+}
+
 int File::fileWrite(Inode *inode, int offset, int length, const void *buffer) {
     if (offset + length > GetMaxFileSize()) {
 		std::cout << "fileWrite: offset" << offset << "length" << length << "greater than max size" << GetMaxFileSize() << std::endl;
