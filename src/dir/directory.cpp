@@ -121,68 +121,8 @@ int Directory::Write(const char *path, const char *buffer, size_t length, off_t 
 }
 
 /**
- * The Readdir operation in the fuse_operations type. offset and finfo are ignored,
- * and directories are always read in their entirety.
- */
-// int Directory::ReadDirectory(const char *path, 
-// 					  void *buf, 
-// 					  fuse_fill_dir_t filler, 
-//        				  off_t offset, 
-// 					  struct fuse_file_info *finfo) {
-
-
-// 	std::cout << "Readdir" << path << std::endl;
-// 	std::cout << "##################" << std::endl;
-// 	std::cout << "bytesPerBlock" << lInfo->bytesPerBlock << std::endl;
-// 	std::cout << "File max size = "<< FILE_MAX_SIZE << std::endl;
-// 	std::cout << "##################" << std::endl;
-
-// 	int   i
-// 		, length
-// 		, count
-// 		, nRead
-// 		, inum;
-
-// 	struct stat st;
-
-//     char buffer[FILE_MAX_SIZE], 
-//          name[256];
-
-// 	Inode dir;
-// 	int err = file.ReadPath(path, &dir);
-// 	if (err) {
-// 		DEBUG(("Readdir: Could not find path %s\n", path));
-// 		return err;
-// 	} else if (dir.fileType != DIRECTORY) {
-// 		DEBUG(("Readdir: %s is not a directory. Filetype is %d\n", path, dir.fileType));
-// 		return -ENOTDIR;
-// 	}
-
-// 	st.st_ino = dir.inum;
-// 	file.fileRead(&dir, 0, dir.fileSize, buffer);
-//     filler(buf, ".", &st, 0);
-//     filler(buf, "..", &st, 0);
-// 	DEBUG(("Readdir: Filled buf with . ..\n"));
-// 	count = 0;
-// 	length = dir.fileSize;
-// 	DEBUG(("Readdir: Dir %s has size %lu\n", path, dir.fileSize));
-    
-// 	// parse dirents read from directory
-//     for (i = 0; i < length; i += nRead) {
-// 		internalReadDir(buffer + i, &inum, name, &nRead); 
-// 		st.st_ino = inum;
-// 		filler(buf, name, &st, 0);
-// 		count++;
-//     }
-// 	DEBUG(("Readdir: Return, count %d\n", count));
-//     return 0; //count;
-// }
-
-
-
-/**
- * Inverts the bit corresponding to inum in inodes_used, and returns
- * the new value.
+ * This function inverts the number corresponding to the inum in the inodes_used array (of 1s and 0s).
+ * TODO: Just an idea right now. Might be useful in Phase 2
  */
 // int Directory::Directory_ToggleUsedInum(int inum) {
 // 	if (inodes_used[inum / 8] == 0) {
@@ -194,4 +134,3 @@ int Directory::Write(const char *path, const char *buffer, size_t length, off_t 
 // 		return 0;
 // 	}
 // }
-

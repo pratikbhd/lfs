@@ -17,34 +17,29 @@ class Directory {
 		int inodes_used; // This is an array of 0s and 1s that keep track of the current inodes being used in the ifile
 
 		/*
- 		* Initialize the directory structure
+ 		* Initializes the directory structure
  		*/
 		// void* Initialize(struct fuse_conn_info*);
 		void* Initialize();
 
 		/**
-		 * Reads <length> bytes into <buf> from the file pointed by <path> starting at <offset> in the file. This is just an interface
-		 * to fileRead.
+		 * Just a wrapper for the fileRead function in the file layer. It reads in 'length' bytes of data into the buffer from the 'path'
+		 * starting at the 'offset'
 		 */
 		int Read(const char *path, char *buf, size_t length, off_t offset,
 	   			struct fuse_file_info *fi);
 
 		/**
-		 * Writes <length> bytes from <buf> to the file pointed by <path> starting at <offset> in the file. This is just an interface
-		 * to fileWrite.
+		 * Just a wrapper for the fileWrite function in the file layer. It writes out 'length' bytes of data from the buffer to the file at 'path',
+		 * starting at the provided 'offset'
 		 */
 		int Write(const char *path, const char *buf, size_t length, off_t offset,
 	   			struct fuse_file_info *fi);
 
 		/**
-		 * Creates a new directory with the path <*path>. The <mode> argument is ignored and all permissions are positive.
+		 * Create a new directory from the provided 'path'. The 'mode' argument is used to set directory permissions. For now, it is not used
+		 * TODO: Implement 'mode' for phase 2
 		 */
 		int makeDirectory(const char *path, mode_t mode);
 
-		/**
-		 * Reads the contents of the directory pointed by <path> and places the names of all files in <buf>. The entries '.' and '..' are
-		 * also placed in <buf>.
-		 */
-		// int ReadDirectory(const char *path, void *buf, fuse_fill_dir_t filler, 
-				// off_t offset, struct fuse_file_info *fi);
 };

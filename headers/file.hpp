@@ -10,46 +10,69 @@ class File {
     public:
     Log log;
     File(char* lfsFile); // Need to pass the flashfile
+
+    /**
+    * This function writes out 'length' bytes of information from the buffer and into the file starting at 'offset'
+    * The file to be written to is specified by the 'inode'
+    */
     int fileWrite(Inode *inode, int offset, int length, const void *buffer);
+
+    /**
+    * This function reads in 'length' bytes of information from the file specified by the 'inode' and stores them in the 
+    * buffer. Reading starts from 'offset'
+    */ 
     int fileRead (Inode *inode, int offset, int length, char *buffer);
+
+    /**
+    * This function opens a file for reading. Nothing much is done here.
+    * Only checks if the file exists or not.
+    */
     int fileOpen(const char *name, struct fuse_file_info *fi);
 
     /**
-    * Creates, opens, and returns a handle to a new file. If <path> is longer than
-    * NAME_MAX_LENGTH, returs the error code ENAMETOOLONG and does nothing.
+    * This function first creates and then opens a new file.
+    * The name of the file cannot be larger than the maximum file length specified in enums (lfs_enums.h) fileLength.
     **/
     int fileCreate(const char *name, mode_t mode, struct fuse_file_info *fi);
     
     /**
-    * Stores the Inode associated with <path> in the memory pointed by <inode>. If <path> does not lead to a file, then
-    * an error code is returned and <inode> points to undefined data.
+    * Reads the 'path' string and checks if the path exists and leads to a file. 
+    * If it does not, an error code is returned and the 'inode' points to undefined data.
+    * If successful, it points to the inode of the directory specified by the 'path'
+    * This is mainly used to check whether a directory already exists when making a new directory or checking if a new one was made
     */
     int ReadPath(const char *path, Inode *inode);
 
+    /**
+    * This function gets the maximum file size that is permitted for a file to have.
+    * The formula for this is: bytesPerBlock * (4 + (bytesPerBlock/sizeof(log_address)))
+    */
     unsigned int GetMaxFileSize();
 
     /**
-    * Creates a new Inode, and sets all of its members to a null value except for inum. This Inode is appended to the ifile.
-    * The new Inode will be pointed to by the <inode> pointer argument.
+    * This function creates a new inode. The members are initialized to have a null value. The inum is specified to 0 i.e. NO_FILE.
+    * This inode is added to the ifile.
     */
     int CreateInode(Inode *inode);
     
     /**
-    * Adds the pair <file->inum, *fileName> to the directory with Inode <*dir>. The entry is added in lexicographical order
-    * with respect to <*fileName>.
+    * This function adds the (name, inum) pair to the file representing the directory with inode 'dir'. 
+    * TODO: Work more on this. Current implementation is buggy.
     */
     int NewEntry(Inode *dir, Inode *file, const char *fileName);
 
     /**
-    * Given a buffer <buf> of <length> bytes populated by the internalReadDir function, stores the inum of the file 
-    * with the given <name> at the location pointed to by <inum>.
-    *
-    * Returns 0 if <inum> is found, otherwise -ENOENT.
+    * This function stores the inum of the file given by the 'name' which is located at the location pointed by 'inum'
     */
     int ReturnInodeFromBuffer(const char *buf, int length, const char *name, int *inum);
 
     /**
-    * Returns a pointer to the inode with <inum>.
+    * This function returns a pointer to the inode having 'inum' 
     */
-    Inode ReturnInode(int inum);
+    Inode *ReturnInode(int inum);
+
+    /**
+    * This function fills in the contents of the structure 'stbuf' of the FUSE.
+    */
+    int fileGetattr(const char *path, struct stat *stbuf);
 };
