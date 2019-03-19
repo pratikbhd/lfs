@@ -1,20 +1,20 @@
 {
     "checkpoints": [
         {
-            "blockOffset": 1,
+            "blockOffset": 5,
             "segmentNumber": 1,
-            "time": 0
+            "time": 4
         },
         {
             "blockOffset": 1,
             "segmentNumber": 1,
-            "time": 0
+            "time": 3
         }
     ],
     "iFile": {
         "block_0": {
-            "blockOffset": 0,
-            "segmentNumber": 0
+            "blockOffset": 5,
+            "segmentNumber": 1
         },
         "block_1": {
             "blockOffset": 0,
@@ -28,7 +28,7 @@
             "blockOffset": 0,
             "segmentNumber": 0
         },
-        "fileSize": 0,
+        "fileSize": 320,
         "fileType": 5,
         "hardLinkCount": 0,
         "indirect_block": {
@@ -48,20 +48,20 @@
                 "use": "FREE"
             },
             {
-                "inum": 0,
-                "use": "FREE"
+                "inum": 3,
+                "use": "INUSE"
+            },
+            {
+                "inum": 2,
+                "use": "INUSE"
             },
             {
                 "inum": 0,
                 "use": "FREE"
             },
             {
-                "inum": 0,
-                "use": "FREE"
-            },
-            {
-                "inum": 0,
-                "use": "FREE"
+                "inum": 1,
+                "use": "INUSE"
             },
             {
                 "inum": 0,
@@ -6419,7 +6419,7 @@
         "sectorsPerBlock": 2,
         "sectorsPerSegment": 64,
         "segmentCount": 50,
-        "usedSegments": 1,
+        "usedSegments": 5,
         "wearLimit": 1000
     }
 }
