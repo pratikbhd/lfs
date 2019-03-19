@@ -34,14 +34,35 @@ int main(int argc, char *argv[])
     Directory directory = Directory((char*)state.lfsFile.c_str());
 
     directory.Initialize();
-    const char *path = "/FlashDir";
-    directory.makeDirectory(path, S_ISUID);
+    //const char *path1 = "/users";
+    //directory.makeDirectory(path1, S_ISUID);
 
-    directory.file.log.Flush();
+    //directory.file.log.Flush();
     
+    //test for read dir
     // char buffer[sizeof(Inode) + 1];
     // const char *path = "/users";
     // directory.Read(path, buffer, sizeof(Inode) + 1, 0, NULL);
+
+    //test for create and open file.
+    const char *path3 = "/users/foo";
+    //directory.file.fileCreate(path3, S_ISUID, NULL);
+    // Parse path to find inode
+    Inode inode;
+    int error = directory.file.ReadPath(path3, &inode);
+    //char buffer[4] = "hel";
+    //directory.file.fileWrite(&inode, 0, 4, buffer);
+
+    char readBuffer[4];
+    directory.file.fileRead(&inode, 0, 4, readBuffer);
+
+    directory.file.log.Flush();
+
+
+
+
+
+
 
     // /* Prepare FUSE args */
 
