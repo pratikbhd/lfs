@@ -1,4 +1,4 @@
-// #include <fuse.h>
+#include <fuse.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -13,72 +13,139 @@
 #include <stdbool.h>
 
 #include "directory.hpp"
+#include "file.hpp"
 #include "log.h"
+
+static int opt = 0;
+
+// For getting long options
+#define CACHE "cache"
+#define INTERVAL "interval"
+#define START "start"
+#define STOP  "stop"
+
+static struct option long_options[] = {
+    {CACHE, 1, 0, 0},
+    {INTERVAL, 1, 0, 0},
+    {START, 1, 0, 0},
+    {STOP, 1, 0, 0},
+    {NULL, 0, NULL, 0}
+};
+
+static char *mount_point;
+static char *flash_file ;
+static long cache = 8;
+static long interval = 1;
+static long start = 4;
+static long stop = 8;
+
+void parse_args (int argc, char **argv)
+{
+    int option_index = 0;
+    while ((opt = getopt_long(argc, argv, "s:i:c:C:",long_options, &option_index)) != -1) {
+        switch (opt) {
+            case 0:
+                printf ("option %s", long_options[option_index].name);
+                if (optarg) {
+                    printf(" with value %s", optarg);
+                    if(strcmp(long_options[option_index].name, CACHE) == 0) {
+                        cache = atol(optarg);
+                    } else if (strcmp(long_options[option_index].name, INTERVAL) == 0) {
+                        interval = atol(optarg);
+                    } else if (strcmp(long_options[option_index].name, START) == 0) {
+                        start = atol(optarg);
+                    } else if (strcmp(long_options[option_index].name, STOP) == 0) {
+                        stop = atol(optarg);
+                    } else {
+                        printf("<<< invalid argument, exiting >>>\n");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                printf ("\n");
+                break;
+
+            case 's':
+                printf("arg s with arg %s\n", optarg);
+                cache = atol(optarg);
+                break;
+            
+            case 'i':
+                printf("arg i with arg %s\n", optarg);
+                interval = atol(optarg);
+                break;
+            
+            case 'c':
+                printf("arg c with arg %s\n", optarg);
+                start = atol(optarg);
+                break;
+            
+            case 'C':
+                printf("arg C with arg %s\n", optarg);
+                stop = atol(optarg);
+                break;
+
+            default:
+                printf("<<< invalid argument, exiting >>>\n");
+                exit(EXIT_FAILURE);
+                break;
+        }
+    }
+}
+
+static struct fuse_operations file_oper = {
+    .init     = Initialize,
+    .create   = fileCreate,
+    .open     = fileOpen,
+    .read     = Read,
+    .write    = Write,
+    .getattr  = fileGetattr,
+    .readdir  = Readdir,
+	.mkdir    = makeDirectory,
+};
 
 int main(int argc, char *argv[])
 {
-    // static long cache = 8;
+    static long cache = 8;
     static long interval = 1000;
     static long start = 4;
     static long stop = 8;
 
+    mount_point = argv[argc-1];
+    flash_file = argv[argc-2];
+    parse_args(argc, argv);
+
     inputState state = inputState();
     state.lfsFile = "flash_test";
     state.interval = interval;
-    // memcpy(state->lfsFile, flash_file, strlen(flash_file));
-    // state->cacheSize = cache;
-    // state->startCleaner = start;
-    // state->stopCleaner = stop;
-    // state->interval = interval;
 
-    Directory directory = Directory((char*)state.lfsFile.c_str());
+    std::cout << "lfs file: " << state->lfsFile << std::endl;
+    std::cout << "interval: " << state->interval << std::endl;
 
-    directory.Initialize();
-    //const char *path1 = "/users";
-    //directory.makeDirectory(path1, S_ISUID);
+    // Directory directory = Directory((char*)state.lfsFile.c_str());
 
-    //directory.file.log.Flush();
+    // directory.Initialize();
+    // const char *path = "/FlashDir";
+    // directory.makeDirectory(path, S_ISUID);
+
+    // directory.file.log.Flush();
     
     //test for read dir
     // char buffer[sizeof(Inode) + 1];
     // const char *path = "/users";
     // directory.Read(path, buffer, sizeof(Inode) + 1, 0, NULL);
 
-    //test for create and open file.
-    const char *path3 = "/users/foo";
-    //directory.file.fileCreate(path3, S_ISUID, NULL);
-    // Parse path to find inode
-    Inode inode;
-    int error = directory.file.ReadPath(path3, &inode);
-    //char buffer[4] = "hel";
-    //directory.file.fileWrite(&inode, 0, 4, buffer);
+    // Preparing FUSE arguments 
 
-    char readBuffer[4];
-    directory.file.fileRead(&inode, 0, 4, readBuffer);
+    char 	**nargv = NULL;
+    int     nargc;
+    nargc = 5;
 
-    directory.file.log.Flush();
+    nargv = (char **) malloc(nargc * sizeof(char*));
+    nargv[0] = argv[0];
+    nargv[1] = "-f";
+    nargv[2] = "-s";
+    nargv[3] = "-d";
+    nargv[4] = mount_point;
 
-
-
-
-
-
-
-    // /* Prepare FUSE args */
-
-    // char 	**nargv = NULL;
-    // int     nargc;
-    // nargc = 5;
-
-    // nargv = (char **) malloc(nargc * sizeof(char*));
-    // nargv[0] = argv[0];
-    // nargv[1] = "-f";
-    // nargv[2] = "-s";
-    // nargv[3] = "-d";
-    // nargv[4] = mount_point;
-   
-    /* start up FUSE */
-
-    // return fuse_main(nargc, nargv, &file_oper, state);
+    return fuse_main(nargc, nargv, &file_oper, state);
 }
-
