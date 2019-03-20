@@ -189,17 +189,16 @@ int Directory::innerReadDir(char *directory, int *inum, char *name, int *lengthR
 	return 0;
 }
 
-/**
- * This function inverts the number corresponding to the inum in the inodes_used array (of 1s and 0s).
- * TODO: Just an idea right now. Might be useful in Phase 2
- */
-// int Directory::Directory_ToggleUsedInum(int inum) {
-// 	if (inodes_used[inum / 8] == 0) {
-// 		inodes_used[inum / 8] = 1;
-// 		return 1;
-// 	}
-// 	else {
-// 		inodes_used[inum / 8] = 0;
-// 		return 0;
-// 	}
-// }
+int Directory::Statfs(const char *path, struct statvfs *stbuf) {
+
+	//TODO right now just filling dummy values
+	memset(stbuf, 0, sizeof(struct statvfs));
+	stbuf->f_bsize = file.log.super_block.bytesPerBlock;
+	stbuf->f_blocks = file.log.super_block.blockCount;
+	stbuf->f_bfree = file.log.super_block.blockCount; //TODO
+	stbuf->f_bavail = stbuf->f_bfree;
+	stbuf->f_files = 0;
+	stbuf->f_ffree = 10;
+	stbuf->f_namemax = 256;
+  return 0;
+}

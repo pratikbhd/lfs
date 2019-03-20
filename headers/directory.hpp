@@ -14,7 +14,7 @@ class Directory {
 
 		// Setting variables to be used for various directory layer operations
 		int inodes_length; // This is the length of the current inode
-		int inodes_used; // This is an array of 0s and 1s that keep track of the current inodes being used in the ifile
+		int *inodes_used; // This is an array of 0s and 1s that keep track of the current inodes being used in the ifile
 
 		/*
  		* Initializes the directory structure
@@ -46,5 +46,7 @@ class Directory {
 			off_t offset, struct fuse_file_info *fi);
 
 		int innerReadDir(char *, int *, char *, int *);
+
+		int Statfs(const char *path, struct statvfs *stbuf);
 
 };

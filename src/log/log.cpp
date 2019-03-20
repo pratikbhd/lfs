@@ -29,7 +29,7 @@ Checkpoint Log::GetCheckpoint(unsigned int sector){
     Checkpoint cp = Checkpoint();
     int res = Flash_Read(flash, sector, 1, buffer);
     if (res) std::cout << "Checkpoint Read failed at sector :" << sector << std::endl;
-    std::memcpy(&cp, buffer, sizeof(Checkpoint)+1);
+    std::memcpy(&cp, buffer, sizeof(Checkpoint));
     return cp;
 }
 

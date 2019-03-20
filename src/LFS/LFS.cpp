@@ -16,10 +16,10 @@
 #include <getopt.h>
 #include <stdbool.h>
 #include<iostream>
-
 #include "directory.hpp"
 #include "file.hpp"
 #include "log.h"
+#include "fuse_functions.hpp"
 
 static int opt = 0;
 
@@ -43,59 +43,6 @@ static long cache = 8;
 static long interval = 1;
 static long start = 4;
 static long stop = 8;
-
-static Directory directory = Directory(((inputState*)fuse_get_context()->private_data)->lfsFile);
-
-void* c_Initialize(struct fuse_conn_info *conn) {
-
-    return directory.Initialize(conn);
-
-}
-
-int c_fileCreate(const char *name, mode_t mode, struct fuse_file_info *fi) {
-
-    return directory.file.fileCreate(name, mode, fi);
-
-}
-
-int c_fileOpen(const char *name, struct fuse_file_info *fi) {
-
-    return directory.file.fileOpen(name, fi);
-
-}
-
-int c_directoryRead(const char *path, char *buf, size_t length, off_t offset,
-	   			struct fuse_file_info *fi) {
-
-    return directory.directoryRead(path, buf, length, offset, fi);
-
-}
-
-int c_directoryWrite(const char *path, const char *buf, size_t length, off_t offset,
-	   			struct fuse_file_info *fi) {
-
-    return directory.directoryWrite(path, buf, length, offset, fi);
-
-}
-
-int c_fileGetattr(const char *path, struct stat *stbuf) {
-
-    return directory.file.fileGetattr(path, stbuf);
-
-}
-
-int c_directoryReaddir(const char *path, void *buf, fuse_fill_dir_t filler, 
-			off_t offset, struct fuse_file_info *fi) {
-
-    return directory.directoryReaddir(path, buf, filler, offset, fi);
-
-}
-
-int c_makeDirectory(const char *path, mode_t mode) {
-
-    return directory.makeDirectory(path, mode);
-
-}
 
 
 void parse_args (int argc, char **argv)
@@ -151,15 +98,47 @@ void parse_args (int argc, char **argv)
     }
 }
 
-static struct fuse_operations file_oper = {
-    .init     = c_Initialize,
-    .create   = c_fileCreate,
-    .open     = c_fileOpen,
-    .read     = c_directoryRead,
-    .write    = c_directoryWrite,
-    .getattr  = c_fileGetattr,
-    .readdir  = c_directoryReaddir,
-	.mkdir    = c_makeDirectory,
+
+static struct fuse_operations file_oper {
+    .getattr = c_fileGetattr,
+    .readlink = NULL,
+    .getdir = NULL,
+    .mknod = NULL,
+    .mkdir = c_makeDirectory,
+    .unlink = NULL,
+    .rmdir = NULL,
+    .symlink = NULL,
+    .rename = NULL,
+    .link = NULL,
+    .chmod = NULL,
+    .chown = NULL,
+    .truncate = NULL,
+    .utime = NULL,
+    .open = NULL,
+    .read = NULL,
+    .write = NULL,
+    .statfs = NULL,
+    .flush = NULL,
+    .release = NULL,
+    .fsync = NULL,
+    .setxattr = NULL,
+    .getxattr = NULL,
+    .listxattr = NULL,
+    .removexattr = NULL,
+    .opendir = NULL,
+    .readdir = NULL,
+    .releasedir = NULL,
+    .fsyncdir = NULL,
+    .init = NULL,
+    // .read       = c_directoryRead,
+    // .write      = c_directoryWrite,
+    // .statfs     = c_Statfs,
+    // .readdir    = c_directoryReaddir,
+    // .init       = c_Initialize,
+    // .destroy    = c_Destroy,
+    // .access     = c_access,
+    // .create     = c_fileCreate,
+    // .flag_nullpath_ok = 1,
 };
 
 int main(int argc, char *argv[])

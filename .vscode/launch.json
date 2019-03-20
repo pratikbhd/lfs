@@ -109,7 +109,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/LFS",
-            "args": ["flash_test"],
+            "args": ["flash_test", "/tmp/fs"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
