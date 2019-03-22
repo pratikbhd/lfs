@@ -67,7 +67,7 @@ class Log {
         int GetFreeBlockCount(int segmentNumber);
 
         //Get the count of used blocks available in the entire flash.
-        int Log::GetUsedBlockCount();
+        int GetUsedBlockCount();
 
         //Read from the tail end segment of the log or any other segments cached starting at address. length is in Bytes, cannot exceed segment size.
         void Read (log_address address, int length, char *buffer);

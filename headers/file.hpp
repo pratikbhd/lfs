@@ -8,6 +8,8 @@
 
 class File {
     public:
+    std::vector<bool> inodes_used; // This is an array of 0s and 1s that keep track of the current inodes being used in the ifile
+
     Log log;
     File(char* lfsFile); // Need to pass the flashfile
 
@@ -72,6 +74,8 @@ class File {
     * This function returns a pointer to the inode having 'inum' 
     */
     Inode ReturnInode(int inum);
+
+    bool ToggleInumUsage(int inum);
 
     /**
     * This function fills in the contents of the structure 'stbuf' of the FUSE.

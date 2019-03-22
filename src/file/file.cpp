@@ -221,6 +221,7 @@ int File::fileCreate(const char *path, mode_t mode, struct fuse_file_info *fi) {
 
 		std::cout << "FileCreate: Made new inode" << inode.inum << std::endl;
 
+		ToggleInumUsage(inode.inum);
 		inode.fileSize = 0;
 
 		// Find the fileType.
@@ -494,6 +495,13 @@ int File::NewEntry(Inode *directoryInode, Inode *fileInode, const char *fileName
 
 unsigned int File::GetMaxFileSize() {
 	return (log.super_block.bytesPerBlock * (4 + (log.super_block.bytesPerBlock)/sizeof(log_address)));
+}
+
+//toggle the usage tracked for an inum.
+bool File::ToggleInumUsage(int inum) {
+	bool current = inodes_used.at(inum);
+	inodes_used.at(inum) = !current;
+	return inodes_used.at(inum);
 }
 
 

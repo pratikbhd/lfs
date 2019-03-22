@@ -25,13 +25,15 @@ void* Directory::Initialize(struct fuse_conn_info *conn) {
 	
 	// The total number of inodes allocated in a block
 	inodes_length = file.log.super_block.bytesPerBlock / sizeof(Inode);
+	for (int i = 0; i < file.GetMaxFileSize() / sizeof(Inode); i++)
+		file.inodes_used.push_back(false);
 
 	// If the iFile is currently empty, this means a new directory has been made
 	// So, create an inode for the directory
 	if (iFile.fileSize == 0) { 
 		// The current length of inode will be only 1 since we are creating an inode for the directory
 		inodes_length = 1;
-		
+		file.ToggleInumUsage(static_cast<int>(reserved_inum::ROOT));
 		Inode directoryInode = Inode();
 		directoryInode.inum = static_cast<char>(reserved_inum::ROOT);
 		directoryInode.fileType = static_cast<char>(fileTypes::DIRECTORY);
@@ -45,6 +47,7 @@ void* Directory::Initialize(struct fuse_conn_info *conn) {
 		int i;
 		for (i = 0; i < iFile.fileSize/sizeof(Inode); i++) {
 			if (inodeArray[i].fileType != static_cast<char>(fileTypes::NO_FILE)) {
+				file.ToggleInumUsage(i);
 				inodes_length++;
 			}
 		}
@@ -189,6 +192,15 @@ int Directory::innerReadDir(char *directory, int *inum, char *name, int *lengthR
 	return 0;
 }
 
+// Counts all inodes in use, except for the ifile inode.
+int Directory::CountInodes() {
+	int count = 0;
+	for (int i = 0; i < inodes_length; i++) {
+			count += file.inodes_used[i] & 1;
+	}
+	return count;
+}
+
 int Directory::Statfs(const char *path, struct statvfs *stbuf) {
 
 	//TODO right now just filling dummy values
@@ -197,8 +209,8 @@ int Directory::Statfs(const char *path, struct statvfs *stbuf) {
 	stbuf->f_blocks = file.log.super_block.blockCount;
 	stbuf->f_bfree = file.log.GetUsedBlockCount();
 	stbuf->f_bavail = stbuf->f_bfree;
-	stbuf->f_files = 0;
-	stbuf->f_ffree = 10;
+	stbuf->f_files = CountInodes();
+	stbuf->f_ffree = stbuf->f_files - inodes_length;
 	stbuf->f_namemax = 256;
   return 0;
 }

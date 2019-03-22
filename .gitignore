@@ -13,3 +13,7 @@ lfsck
 lfsck\.dSYM/
 
 mklfs\.dSYM/
+
+\.vscode/ipch/
+
+LFS
