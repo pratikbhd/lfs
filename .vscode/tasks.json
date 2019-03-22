@@ -53,12 +53,12 @@
             "type": "shell",
             "command": "g++",
             "args" :[
-                "-g","-Og", "`pkg-config", "--libs", "--cflags", "fuse`", "-o", "LFS", "-I", "headers", 
+                "-g", "-o", "LFS", "-I", "headers", 
                 "src/LFS/LFS.cpp", "src/LFS/fuse_functions.cpp", 
                 "src/dir/directory.cpp", "src/file/file.cpp",
                 "src/log/log.cpp", "src/log/log_private.cpp", 
                 "src/log/segment.cpp", "src/log/superblock.cpp", "src/log/checkpoint.cpp",
-                "src/flash/flash.c"
+                "src/flash/flash.c", "`pkg-config", "--libs", "--cflags", "fuse`"
             ],
             "group": {
                 "kind": "build",

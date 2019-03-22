@@ -58,6 +58,29 @@ block_usage Log::GetBlockUsage(log_address address) {
     return b;
 }
 
+int Log::GetUsedBlockCount(){
+    int i = 0;
+    int sum = 0;
+    for(; i < super_block.segmentCount; i++) {
+        sum += super_block.blocksPerSegment - GetFreeBlockCount(i);
+    }
+    return sum;
+}
+
+int Log::GetFreeBlockCount(int segmentNumber){
+    int free = 0;
+    char buffer[summaryBlockBytes()];
+    log_address address = {segmentNumber, 0};
+    Read(address, summaryBlockBytes(), buffer);
+    int j = 0;
+    for(; j < super_block.segmentCount; j++) {
+        block_usage *br = (block_usage*) (buffer + j * sizeof(block_usage));
+        if(br->use == static_cast<char>(usage::FREE))
+            ++free;
+    }
+    return free;
+}
+
 void Log::Read(log_address address, int length, char *buffer) {
     unsigned int offsetBytes = super_block.bytesPerBlock * address.blockOffset;
     if (offsetBytes + length > super_block.bytesPerSegment)

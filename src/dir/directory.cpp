@@ -195,7 +195,7 @@ int Directory::Statfs(const char *path, struct statvfs *stbuf) {
 	memset(stbuf, 0, sizeof(struct statvfs));
 	stbuf->f_bsize = file.log.super_block.bytesPerBlock;
 	stbuf->f_blocks = file.log.super_block.blockCount;
-	stbuf->f_bfree = file.log.super_block.blockCount; //TODO
+	stbuf->f_bfree = file.log.GetUsedBlockCount();
 	stbuf->f_bavail = stbuf->f_bfree;
 	stbuf->f_files = 0;
 	stbuf->f_ffree = 10;

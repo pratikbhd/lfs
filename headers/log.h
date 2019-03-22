@@ -63,6 +63,12 @@ class Log {
         //Get a Block usage record for a log address. Caches the log segment referred for Read if it is not the tail end segment.
         block_usage GetBlockUsage(log_address address);
 
+        //Get the count of free blocks from the specified segment.
+        int GetFreeBlockCount(int segmentNumber);
+
+        //Get the count of used blocks available in the entire flash.
+        int Log::GetUsedBlockCount();
+
         //Read from the tail end segment of the log or any other segments cached starting at address. length is in Bytes, cannot exceed segment size.
         void Read (log_address address, int length, char *buffer);
         //Write to the tail end segment of the log starting at address. length is in Bytes, cannot exceed segment size.
