@@ -313,20 +313,24 @@ int File::fileOpen(const char *path, struct fuse_file_info *fi) {
 
 int File::ReadPath(const char *path, Inode *inode) {
 	
+	
 	std::cout << "[File] ReadPath: path: " << path << std::endl;	
 	
 	char directory[GetMaxFileSize()], name[static_cast<unsigned int>(fileLength::LENGTH)+1];
 	int inum, length, offset, i, error 
 		, pathLength = strlen(path);
-
+	
+	std::cout << "[File] ReadPath: path 0 check";
 	// The path must start with '/'
     if (path[0] != '/') {
 		std::cout << "[File] ReadPath: Invalid path, begins with: " << path[0] << std::endl;
 		return -EINVAL;
 	}
 	
+	std::cout << "[File] ReadPath: return inode check";
 	Inode directoryInode = ReturnInode(static_cast<char>(reserved_inum::ROOT));
 	
+	std::cout << "[File] ReadPath: path 1 check";
 	// Check if the path is just the root
 	if (path[1] == '\0') {
 		std::cout << "[File] Read path on directory: " << path <<  std::endl;
@@ -335,6 +339,7 @@ int File::ReadPath(const char *path, Inode *inode) {
 		return 0;
 	}
 
+	std::cout << "[File] ReadPath: file read check";
 	// Read directory for next part of path. Initially directory is the root
 	offset = 1;
 	length = fileRead(&directoryInode, 0, directoryInode.fileSize, directory);

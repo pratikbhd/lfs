@@ -105,8 +105,8 @@ void Log::Write(log_address address, int length, char *buffer) {
     unsigned int w = 0;
     unsigned int b = address.segmentNumber * super_block.blocksPerSegment + address.blockOffset;
     Flash_GetWear(flash, b, &w);
-    std::cout<< "Segment: " << address.segmentNumber << "Block: " << address.blockOffset << std::endl;
-    std::cout<< "Block wear: " << w << std::endl;
+    std::cout<< "[Log] Segment: " << address.segmentNumber << "Block: " << address.blockOffset << std::endl;
+    std::cout<< "[Log] Block wear: " << w << std::endl;
     
     /*  Update Log End segment */
     if((*log_end).GetSegmentNumber() != address.segmentNumber) {

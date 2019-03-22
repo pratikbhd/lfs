@@ -163,9 +163,6 @@ int main(int argc, char *argv[])
     state.lfsFile = flash_file;
     state.interval = interval;
 
-    mount_point = "/tmp/fs/";
-    flash_file = "flash_test";
-
     std::cout << "lfs file: " << state.lfsFile << std::endl;
     std::cout << "interval: " << state.interval << std::endl;
 
