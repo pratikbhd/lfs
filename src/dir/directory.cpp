@@ -124,6 +124,23 @@ int Directory::directoryWrite(const char *path, const char *buffer, size_t lengt
         return val;
 }
 
+	int Directory::Exists(const char * path)
+	{
+		Inode dirInode;
+		int error = file.ReadPath(path, &dirInode);
+		if (error) {
+			std::cout << "Exists: Could not find path " << path << std::endl;
+			return -ENOENT;
+		}
+
+		if (dirInode.inum == static_cast<unsigned int>(reserved_inum::NOINUM)){
+			std::cout << "Exists: No inum assigned for path: " << path << std::endl;
+			return -ENOENT;
+		}
+
+		return 0;
+	}
+
 int Directory::directoryReaddir(const char *path, 
 					  void *buf, 
 					  fuse_fill_dir_t filler, 
@@ -199,6 +216,16 @@ int Directory::CountInodes() {
 			count += file.inodes_used[i] & 1;
 	}
 	return count;
+}
+
+int Directory::Truncate(const char *path, off_t size) {
+	Inode inode;
+	int err = file.ReadPath(path, &inode);
+	if (err) {
+		return err;
+	}
+	err = file.Truncate(&inode, size);
+	return err;
 }
 
 int Directory::Statfs(const char *path, struct statvfs *stbuf) {

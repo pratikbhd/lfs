@@ -70,8 +70,7 @@ int Log::GetUsedBlockCount(){
 int Log::GetFreeBlockCount(int segmentNumber){
     int free = 0;
     char buffer[summaryBlockBytes()];
-    log_address address = {segmentNumber, 0};
-    Read(address, summaryBlockBytes(), buffer);
+    Read(GetLogAddress(segmentNumber, 0), summaryBlockBytes(), buffer);
     int j = 0;
     for(; j < super_block.segmentCount; j++) {
         block_usage *br = (block_usage*) (buffer + j * sizeof(block_usage));

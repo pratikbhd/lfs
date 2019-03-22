@@ -218,6 +218,6 @@ int main(int argc, char** argv)
     lfs_init_inodemap(&log);
     Flash_Close(log.flash);
 
-    std::cout<< "MKLFS Complete!" << std::endl << "Press ENTER key to quit!";
+    std::cout<< "MKLFS Complete!" << std::endl;
     std::cin.get();
 }

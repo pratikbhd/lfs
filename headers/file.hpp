@@ -81,4 +81,6 @@ class File {
     * This function fills in the contents of the structure 'stbuf' of the FUSE.
     */
     int fileGetattr(const char *path, struct stat *stbuf);
+
+    int Truncate(Inode *inode, off_t size);
 };

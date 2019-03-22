@@ -48,6 +48,11 @@ class Directory {
 
 		int CountInodes();
 
+		int Truncate(const char *path, off_t size);
+
+		//Check if a file or directory exists at this path or not.
+		int Exists(const char * path);
+
 		int Statfs(const char *path, struct statvfs *stbuf);
 
 };

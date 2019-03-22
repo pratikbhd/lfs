@@ -33,6 +33,17 @@ int c_directoryRead(const char *path, char *buf, size_t length, off_t offset,
 int c_access(const char* path, int mask);
 int c_makeDirectory(const char *path, mode_t mode);
 
+int c_directoryWrite(const char *path, const char *buf, size_t length, off_t offset,
+	   			struct fuse_file_info *fi); 
+
+int c_Unlink(const char *path);
+int c_Flush(const char *path, struct fuse_file_info *fi);
+
+int c_Opendir(const char *name, struct fuse_file_info *finfo);
+void c_Destroy(void *data);
+
+int c_directoryReaddir(const char *path, void *buf, fuse_fill_dir_t filler, 
+			off_t offset, struct fuse_file_info *fi);
 #ifdef __cplusplus
 } // extern "C"
 #endif

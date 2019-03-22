@@ -504,6 +504,36 @@ bool File::ToggleInumUsage(int inum) {
 	return inodes_used.at(inum);
 }
 
+int File::Truncate(Inode *inode, off_t size) {
+	long bn, blockOffset;
+	std::cout << "Truncate file inum : " << inode->inum << std::endl;
+
+	if (inode->fileSize > size) {
+		bn = size / log.super_block.bytesPerBlock;
+		blockOffset = size % log.super_block.bytesPerBlock;
+		inode->fileSize = size;
+		
+		// First block is not deleted, unless size == 0
+		// just set inode->fileSize = size
+		if (blockOffset == 0) {
+			log.Free(log.GetLogAddress(*inode, bn));
+			log.UpdateInode(inode, bn, log.GetLogAddress(0, 0)); //BLOCK_NULL_ADDR;
+		}
+		// Free all blocks which are completely truncated
+		for (bn++; /*i < 4 &&*/ log.GetLogAddress(*inode, bn).segmentNumber != 0; bn++) {
+			log.Free(log.GetLogAddress(*inode, bn));
+			log.UpdateInode(inode, bn, log.GetLogAddress(0, 0)); //BLOCK_NULL_ADDR;
+		}
+		fileWrite(&log.iFile, inode->inum * sizeof(Inode), sizeof(Inode), inode);
+
+	} else if (inode->fileSize < size) {
+		char buffer[size - inode->fileSize]; // buffer of 0's to fill out file
+		fileWrite(inode, inode->fileSize, size - inode->fileSize, buffer);
+	} // else size == fileSize, do nothing.
+
+	std::cout << "Truncate: Done" <<std::endl;
+	return 0;
+}
 
 int File::fileGetattr(const char *path, struct stat *stbuf) {
 	std::cout << "Getattr being called." << std::endl;
@@ -554,3 +584,4 @@ int File::fileGetattr(const char *path, struct stat *stbuf) {
 	std::cout << "Leaving getAttr" << std::endl;
 	return 0;
 }
+

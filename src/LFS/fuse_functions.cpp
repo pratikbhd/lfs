@@ -99,7 +99,7 @@ int c_Flush(const char *path, struct fuse_file_info *fi) {
 
 int c_Truncate(const char *path, off_t size) {
 	std::cout << "LFS: Truncate called";
-	return 0;
+    return directory->Truncate(path, size);
 }
 
 int c_HardLink(const char *to, const char *from) {
@@ -134,5 +134,5 @@ int c_Rename(const char *from, const char *to){
 
 int c_access(const char* path, int mask){
     std::cout <<"LFS: access called";
-    return 0;
+    return directory->Exists(path);
 }
