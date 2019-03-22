@@ -21,6 +21,15 @@ LFS:
 g++ -g -o lfs -I headers src/LFS/LFS.cpp src/LFS/fuse_functions.cpp src/dir/directory.cpp src/file/file.cpp src/log/log.cpp src/log/log_private.cpp src/log/segment.cpp src/log/superblock.cpp src/log/checkpoint.cpp src/flash/flash.c `pkg-config --libs --cflags fuse`
 ```
 
+### Run lfstest.py
+
+1. Create a mount point directory location for fuse: egs: /tmp/flash/
+2. Run lfstest.py by runnning the following command from the root directory of this repository:
+
+```
+python test/lfstest.py -f flash_file -m /tmp/flash/
+```
+
 ### Launch 
 
 To run the LFS filesystem, run mklfs first by running the binary 
