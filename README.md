@@ -4,7 +4,7 @@ This repository holds an implementation of a log structured file system that is 
 
 ### Build
 
-We tested this in Ubuntu 16.04.
+We tested this in Ubuntu 16.04 using Fuse v2.9.9 and C++14.
 
 To build lfs, mklfs and lfsck, we use g++ to compile and link our source code. Run the following commands to create the three binaries from the root directory of the github repository.
 
@@ -24,7 +24,7 @@ g++ -g -o lfs -I headers src/LFS/LFS.cpp src/LFS/fuse_functions.cpp src/dir/dire
 ### Run lfstest.py
 
 1. Create a mount point directory location for fuse: egs: /tmp/flash/
-2. Run lfstest.py by runnning the following command from the root directory of this repository:
+2. Run lfstest.py by running the following command from the root directory of this repository:
 
 ```
 python test/lfstest.py -f flash_file -m /tmp/flash/
