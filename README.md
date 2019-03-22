@@ -4,6 +4,8 @@ This repository holds an implementation of a log structured file system that is 
 
 ### Build
 
+We tested this in Ubuntu 16.04.
+
 To build lfs, mklfs and lfsck, we use g++ to compile and link our source code. Run the following commands to create the three binaries from the root directory of the github repository.
 
 ```
