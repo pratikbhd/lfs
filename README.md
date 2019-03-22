@@ -8,9 +8,7 @@ To build lfs, mklfs and lfsck, we use g++ to compile and link our source code. R
 
 ```
 mklfs:
-g++ -g -o mklfs -I headers src/flash/mklfs.cpp src/log/log.cpp 
-src/log/log_private.cpp src/log/segment.cpp src/log/superblock.cpp 
-src/log/checkpoint.cpp src/flash/flash.c
+g++ -g -o mklfs -I headers src/flash/mklfs.cpp src/log/log.cpp src/log/log_private.cpp src/log/segment.cpp src/log/superblock.cpp src/log/checkpoint.cpp src/flash/flash.c
 
 lfsck: 
 g++ -g -o lfsck -I headers src/flash/lfsck.cpp 
@@ -18,11 +16,7 @@ src/log/log.cpp src/log/log_private.cpp src/log/segment.cpp
 src/log/superblock.cpp src/log/checkpoint.cpp src/flash/flash.c
 
 LFS:
-g++ -g -o LFS -I headers src/LFS/LFS.cpp src/dir/directory.cpp 
-src/file/file.cpp src/log/log.cpp src/log/log_private.cpp 
-src/log/segment.cpp src/log/superblock.cpp src/log/checkpoint.cpp 
-src/flash/flash.c
-\end{lstlisting}
+g++ -g -o lfs -I headers src/LFS/LFS.cpp src/LFS/fuse_functions.cpp src/dir/directory.cpp src/file/file.cpp src/log/log.cpp src/log/log_private.cpp src/log/segment.cpp src/log/superblock.cpp src/log/checkpoint.cpp src/flash/flash.c `pkg-config --libs --cflags fuse`
 ```
 
 ### Launch 
