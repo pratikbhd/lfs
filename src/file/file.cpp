@@ -31,20 +31,20 @@ File::~File(){
 
 int File::fileWrite(Inode *inode, int offset, int length, const void *buffer) {
     if (offset + length > GetMaxFileSize()) {
-		std::cout << "fileWrite: offset" << offset << "length" << length << "greater than max size" << GetMaxFileSize() << std::endl;
+		std::cout << "[File] fileWrite: offset: " << offset << " length: " << length << " greater than max size: " << GetMaxFileSize() << std::endl;
         return -1;
     }
     
     // Read whole file
-    std::cout << "Maximum Size: " << log.super_block.bytesPerBlock*4 << std::endl;
-    std::cout << "size: " << GetMaxFileSize() << std::endl;
+    std::cout << "[File] Maximum Size: " << log.super_block.bytesPerBlock*4 << std::endl;
+    std::cout << "[File] size: " << GetMaxFileSize() << std::endl;
 
     char data[GetMaxFileSize()];
     int writeIndex=0, writeOffset=0;
 
     while (log.GetLogAddress(*inode, writeIndex).segmentNumber != 0 ) { //BLOCK_NULL_ADDR) {
-        std::cout << "Write offset:" << writeOffset << std::endl;
-        std::cout << "bytesPerBlock" << log.super_block.bytesPerBlock << std::endl;
+        std::cout << "[File] Write offset: " << writeOffset << std::endl;
+        std::cout << "[File] bytesPerBlock: " << log.super_block.bytesPerBlock << std::endl;
 
         log.Read(log.GetLogAddress(*inode, writeIndex), log.super_block.bytesPerBlock, data+writeOffset);
         writeOffset+=log.super_block.bytesPerBlock;
@@ -56,11 +56,11 @@ int File::fileWrite(Inode *inode, int offset, int length, const void *buffer) {
 	}	
     
     // write
-    std::cout << "Data:" << data << std::endl;
-    std::cout << "Data+offset:" << data+offset << std::endl;
-    std::cout << "Buffer:" << buffer << std::endl;
-    std::cout << "Length:" << length << std::endl;
-    std::cout << "Offset:" << offset << std::endl;
+    std::cout << "[File] Data:" << data << std::endl;
+    std::cout << "[File] Data+offset:" << data+offset << std::endl;
+    std::cout << "[File] Buffer:" << buffer << std::endl;
+    std::cout << "[File] Length:" << length << std::endl;
+    std::cout << "[File] Offset:" << offset << std::endl;
 
     memcpy((data+offset), buffer, length);
    
@@ -71,15 +71,15 @@ int File::fileWrite(Inode *inode, int offset, int length, const void *buffer) {
     // Just debugging
 	int idx = 0;
 	if (data[0] == '\0') {
-		std::cout << "First character is null\n" << std::endl;
+		std::cout << "[File] First character is null" << std::endl;
     }
     for (idx = 0; idx < inode->fileSize; idx++) {
         if (idx < inode->fileSize) {
-            std::cout << "eval\n" << std::endl;
+            std::cout << "[File] eval" << std::endl;
             break;
         }
-        std::cout << "loop i: %d\n" << idx << std::endl;
-        std::cout << data[idx] << std::endl;
+        std::cout << "[File] loop i: " << idx << std::endl;
+        std::cout << "[File] :" << data[idx] << std::endl;
     }
 
 	// Write entire file	
@@ -95,19 +95,19 @@ int File::fileWrite(Inode *inode, int offset, int length, const void *buffer) {
 int File::fileRead(Inode *inode, int offset, int length, char *buffer) {
 	int total;
 	
-    std::cout << "FileRead: Reading inum: " << inode->inum << std::endl;
+    std::cout << "[File] FileRead: Reading inum: " << inode->inum << std::endl;
 
     // If the length to be read in is greater than the maximum file size, set the length to the maximum file size
     if (length > GetMaxFileSize()) {
-		std::cout << "FileRead: length" << length << "greater than max: " << GetMaxFileSize() << std::endl;
+		std::cout << "[File] FileRead: length: " << length << "greater than max: " << GetMaxFileSize() << std::endl;
 		length = GetMaxFileSize();
     }
 
     // If the part of data to be read exceeds the file size of the data in the inode, then truncate the read length only upto the end of the file
    	if (length + offset > inode->fileSize) {
-		std::cout << "fileRead read" << length << "bytes at offset" << offset << "total =" << length+offset << std::endl;
-		std::cout << "inode file size: " << inode->fileSize << std::endl;
-		std::cout << "Bad line fileRead, read past EOF\n" << std::endl;
+		std::cout << "[File] fileRead read: " << length << " bytes at offset: " << offset << " total = " << length+offset << std::endl;
+		std::cout << "[File] inode file size: " << inode->fileSize << std::endl;
+		std::cout << "[File] Bad line fileRead, read past EOF" << std::endl;
 		// Truncate read length
 		length = inode->fileSize - offset;
 	}
@@ -155,7 +155,7 @@ int File::fileRead(Inode *inode, int offset, int length, char *buffer) {
 }
 
 int File::fileCreate(const char *path, mode_t mode, struct fuse_file_info *fi) {
-	std::cout << "FileCreate: path " << path << std::endl;
+	std::cout << "[File] FileCreate: path: " << path << std::endl;
     Inode inode, directory;
 	
     int i, j, length = strlen(path), returnValue = 0;
@@ -165,7 +165,7 @@ int File::fileCreate(const char *path, mode_t mode, struct fuse_file_info *fi) {
 	for (i = length - 2; i >= 0 && path[i] != '/'; i--);
 
 	if (i < 0) {
-		std::cout << "fileCreate: <path>" << path << "does not begin with '/'" << std::endl;
+		std::cout << "[File] fileCreate: " << path << " does not begin with '/'" << std::endl;
 	}
 
 	char name[static_cast<unsigned int>(fileLength::LENGTH)+1] , parent[i+1];
@@ -192,17 +192,17 @@ int File::fileCreate(const char *path, mode_t mode, struct fuse_file_info *fi) {
 		name[i] = path[j];
 	} name[i] = '\0';
 
-	std::cout << "fileCreate: path" << path << "parent" <<  parent << "child" << name << std::endl;
+	std::cout << "[File] fileCreate: path: " << path << " parent: " <<  parent << " child: " << name << std::endl;
 
 	// The path should start with a '/'
 	if (path[0] != '/') {
-		std::cout << "FileCreate: path" << path << "didn't start with '/'" << std::endl;
+		std::cout << "[File] FileCreate: path: " << path << " didn't start with '/'" << std::endl;
 		return -ENOENT;
 	}
 
 	length = strlen(name);
     if (length > static_cast<unsigned int>(fileLength::LENGTH)) {
-		std::cout << "FileCreate: Name" << name << "is too long" << std::endl;
+		std::cout << "[File] FileCreate: Name: " << name << " is too long " << std::endl;
         return ENAMETOOLONG;
 	}
 
@@ -214,12 +214,12 @@ int File::fileCreate(const char *path, mode_t mode, struct fuse_file_info *fi) {
 		
 		// First, make an inode
 		if (CreateInode(&inode) == -EFBIG) {
-			std::cout << "FileCreate: Cannot allocate new inode, ifile is too large\n" << std::endl;
+			std::cout << "[File] FileCreate: Cannot allocate new inode, ifile is too large" << std::endl;
 			returnValue = -EFBIG;
 			return returnValue;
 		}
 
-		std::cout << "FileCreate: Made new inode" << inode.inum << std::endl;
+		std::cout << "[File] FileCreate: Made new inode: " << inode.inum << std::endl;
 
 		ToggleInumUsage(inode.inum);
 		inode.fileSize = 0;
@@ -239,34 +239,34 @@ int File::fileCreate(const char *path, mode_t mode, struct fuse_file_info *fi) {
 			inode.fileType = static_cast<char>(fileTypes::NO_FILE);
 		}
 		
- 		std::cout << "FileCreate: Mode =" << mode << std::endl;
-		std::cout << "FileCreate: inum =" << inode.inum << std::endl;
+ 		std::cout << "[File] FileCreate: Mode = " << mode << std::endl;
+		std::cout << "[File] FileCreate: inum = " << inode.inum << std::endl;
 
 		length = strlen(path);
 		error = ReadPath(parent, &directory);
 
 		// If an error shows up, it means that the parent directory could not be read in
 		if (error) {
-			std::cout << "FileCreate: Error" << strerror(error) << "reading parent directory" << parent << std::endl;
+			std::cout << "[File] FileCreate: Error: " << strerror(error) << " reading parent directory: " << parent << std::endl;
 			return error;
 		}
 
 		// Need to keep an <name, inum> pair in the corresponding directory
 		error = NewEntry(&directory, &inode, name);
 		if (error) {
-			std::cout << "FileCreate: Error" <<  strerror(error) << "adding entry" << name << "in directory" << parent << std::endl;
+			std::cout << "[File] FileCreate: Error: " <<  strerror(error) << " adding entry: " << name << " in directory: " << parent << std::endl;
 			return error;
 		}
 		fileWrite(&inode, 0, 0, NULL);
     } 
 	
-	std::cout << "FileCreate: Returning from creating" << path << std::endl;
+	std::cout << "[File] FileCreate: Returning from creating: " << path << std::endl;
 	returnValue = fileOpen(path, fi);
     return returnValue;
 }
 
 int File::CreateInode(Inode *inode) {
-    std::cout << "Creating a new inode" << std::endl;
+    std::cout << "[File] Creating a new inode" << std::endl;
 
 	int	i, length;
 	char buffer[GetMaxFileSize()];
@@ -278,7 +278,7 @@ int File::CreateInode(Inode *inode) {
 	for (i = 0; i < length; i++) {
 		// Check if any inode's filetype has been assigned to NO_FILE which suggests that it is a free inode
 		if (inodes[i].fileType == static_cast<char>(fileTypes::NO_FILE) && inodes[i].inum != static_cast<unsigned int>(reserved_inum::NOINUM)) {
-			std::cout << "New inode is" << i << std::endl;
+			std::cout << "[File]  New inode is: " << i << std::endl;
 			memcpy(inode, inodes + i, sizeof(Inode));
 			return 0;
 		}
@@ -290,30 +290,30 @@ int File::CreateInode(Inode *inode) {
 
 	// Allocate a new inode if there is enough space
 	memset(inode, 0, sizeof(Inode));
-	std::cout << "Made a new inode of length" << length << std::endl;
+	std::cout << "[File] Made a new inode of length: " << length << std::endl;
 	inode->fileType = static_cast<char>(fileTypes::NO_FILE);
 	inode->inum = length;
-	std::cout << "CreateInode: Writing inode" << inode->inum << "to ifile" << std::endl;
+	std::cout << "[File] CreateInode: Writing inode: " << inode->inum << " to ifile " << std::endl;
 	fileWrite(&ifile, ifile.fileSize, sizeof(Inode), inode);
-	std::cout << "CreateInode: Finished writing inode" << inode->inum << std::endl;
+	std::cout << "[File] CreateInode: Finished writing inode: " << inode->inum << std::endl;
 	return 0;
 }
 
 int File::fileOpen(const char *path, struct fuse_file_info *fi) {
-	std::cout << "FileOpen" << path << std::endl;
+	std::cout << "[File]  FileOpen: " << path << std::endl;
     Inode inode;
     int error = ReadPath(path, &inode);
 	if (error) {
-		std::cout << "FileOpen: Could not read path" << path << std::endl;
+		std::cout << "[File] FileOpen: Could not read path: " << path << std::endl;
 		return error;
 	}
-	std::cout << "FileOpen: Success!" << std::endl;
+	std::cout << "[File] FileOpen: Success!" << std::endl;
     return 0;
 }
 
 int File::ReadPath(const char *path, Inode *inode) {
 	
-	std::cout << "ReadPath: path" << path << std::endl;	
+	std::cout << "[File] ReadPath: path: " << path << std::endl;	
 	
 	char directory[GetMaxFileSize()], name[static_cast<unsigned int>(fileLength::LENGTH)+1];
 	int inum, length, offset, i, error 
@@ -321,7 +321,7 @@ int File::ReadPath(const char *path, Inode *inode) {
 
 	// The path must start with '/'
     if (path[0] != '/') {
-		std::cout << "ReadPath: Invalid path, begins with" << path[0] << std::endl;
+		std::cout << "[File] ReadPath: Invalid path, begins with: " << path[0] << std::endl;
 		return -EINVAL;
 	}
 	
@@ -329,8 +329,8 @@ int File::ReadPath(const char *path, Inode *inode) {
 	
 	// Check if the path is just the root
 	if (path[1] == '\0') {
-		std::cout << "Read path on directory" << path <<  std::endl;
-		std::cout << "Root->inum =" <<  directoryInode.inum << ", length =" << directoryInode.fileSize << std::endl;
+		std::cout << "[File] Read path on directory: " << path <<  std::endl;
+		std::cout << "[File] Root->inum = " <<  directoryInode.inum << " , length = " << directoryInode.fileSize << std::endl;
 		memcpy(inode, &directoryInode, sizeof(Inode));
 		return 0;
 	}
@@ -338,13 +338,13 @@ int File::ReadPath(const char *path, Inode *inode) {
 	// Read directory for next part of path. Initially directory is the root
 	offset = 1;
 	length = fileRead(&directoryInode, 0, directoryInode.fileSize, directory);
-	std::cout << "ReadPath: directory is of length" << length << std::endl;
+	std::cout << "[File] ReadPath: directory is of length: " << length << std::endl;
 	
 	// Start debugging
-	std::cout << "Contents: " << std::endl;
+	std::cout << "[File] Contents: " << std::endl;
 	char tmp = directory[length];
 	directory[length] = '\0';
-	std::cout << directory << std::endl;
+	std::cout <<"[File] "<< directory << std::endl;
 	directory[length] = tmp;
 	// End debugging
 
@@ -357,12 +357,12 @@ int File::ReadPath(const char *path, Inode *inode) {
 		// Complete the name by storing a '\0' at the end of the string. This is the inode to return
 		name[i] = '\0';
 
-		std::cout << "ReadPath: getting inode for" << name << std::endl;
+		std::cout << "[File] ReadPath: getting inode for: " << name << std::endl;
 		
 		error = ReturnInodeFromBuffer(directory, length, name, &inum);
 		
 		if (error) {
-			std::cout << "ReadPath: Could not follow path" <<  "Failed to read" << name << std::endl;
+			std::cout << "[File] ReadPath: Could not follow path: " << path << " Failed to read: " << name << std::endl;
 			return error;
 		}
 
@@ -370,12 +370,12 @@ int File::ReadPath(const char *path, Inode *inode) {
 		
 		// From the above for loop, the value of i will have reached the end of the name and should point to either '/' or '\0'
 		if ((path + offset)[i] == '\0' || (path + offset)[i+1] == '\0') { 
-			std::cout << "ReadPath: Returning inode" <<  directoryInode.inum << std::endl;
+			std::cout << "[File] ReadPath: Returning inode: " <<  directoryInode.inum << std::endl;
 			memcpy(inode, &directoryInode, sizeof(Inode));
 			return 0;
 		}
 		else if (directoryInode.fileType != static_cast<char>(fileTypes::DIRECTORY)) {
-			std::cout << "ReadPath: Link" << name << "in path" << name << "not a directory" << std::endl;
+			std::cout << "[File] ReadPath: Link: " << name << " in path " << name << " not a directory" << std::endl;
 			return -ENOTDIR;
 		}
 
@@ -393,7 +393,7 @@ Inode File::ReturnInode(int inum) {
 		ifile = log.iFile;
 
 	int length = fileRead(&ifile, inum*sizeof(Inode), sizeof(Inode), (char*)&inode);  
-	std::cout << "GetInode: Read" << length << "bytes from ifile, inum =" << inum << "inode->inum =" << inode.inum << std::endl;
+	std::cout << "[File] GetInode: Read: " << length << " bytes from ifile, inum = " << inum << " inode->inum = " << inode.inum << std::endl;
 	return inode;
 }
 
@@ -403,7 +403,7 @@ int File::ReturnInodeFromBuffer(const char *buf, int length, const char *name, i
 	
 	// Check if name does not exist
 	if (name[0] == '\0') {
-		std::cout << "Null name in 'ReturnInodeFromBuffer'" << std::endl;
+		std::cout << "[File] Null name in 'ReturnInodeFromBuffer'" << std::endl;
 		return -ENOENT;
 	}
 
@@ -419,7 +419,7 @@ int File::ReturnInodeFromBuffer(const char *buf, int length, const char *name, i
 	}
 
 	if (strcmp(name,temporaryName) == 0) {
-		std::cout << "inodeByName: inum =" << num << std::endl;
+		std::cout << "[File] inodeByName: inum = " << num << std::endl;
 		*inum = num;
 		return 0;
 	}
@@ -433,21 +433,21 @@ int File::ReturnInodeFromBuffer(const char *buf, int length, const char *name, i
  */
 int File::NewEntry(Inode *directoryInode, Inode *fileInode, const char *fileName) {
 	
-	std::cout << "Add a new entry" << fileName << std::endl;
+	std::cout << "[File] Add a new entry: " << fileName << std::endl;
 	int length, i, inum, insertLocation, compare;
    
 	length = strlen(fileName);
 
-    std::cout << "length:" << length <<std::endl;
-    std::cout << "dirfilesize:" <<  directoryInode->fileSize << std::endl;
+    std::cout << "[File] length: " << length <<std::endl;
+    std::cout << "[File] dirfilesize: " <<  directoryInode->fileSize << std::endl;
     
 	char buffer[directoryInode->fileSize];
     char name[static_cast<unsigned int>(fileLength::LENGTH)+1];
 
-	std::cout << "AddEntry: length =" << length << std::endl;
+	std::cout << "[File] AddEntry: length = " << length << std::endl;
 	fileRead(directoryInode, 0, directoryInode->fileSize, buffer);  	
 
-	std::cout << "AddEntry: Inserting, dir size =" <<  directoryInode->fileSize << std::endl;
+	std::cout << "[File] AddEntry: Inserting, dir size = " <<  directoryInode->fileSize << std::endl;
 	
 	insertLocation = 0;
 	
@@ -459,7 +459,7 @@ int File::NewEntry(Inode *directoryInode, Inode *fileInode, const char *fileName
 		if (compare < 0) {
 			break; // Found place to insert next entry
 		} else if (compare == 0) {
-			std::cout << "AddEntry: Adding existant file" << fileName << std::endl;
+			std::cout << "[File] AddEntry: Adding existant file: " << fileName << std::endl;
 			return -EEXIST;
 		}
 
@@ -471,25 +471,25 @@ int File::NewEntry(Inode *directoryInode, Inode *fileInode, const char *fileName
 	char newBuffer[sizeof(int) + length + 1 + directoryInode->fileSize - insertLocation]; // Room for inum, fileName + null byte, and rest of file
 	
 	// Copy next entry into buf
-	std::cout << "AddEntry: Adding inum" << fileInode->inum << "name" << fileName << std::endl;
+	std::cout << "[File] AddEntry: Adding inum: " << fileInode->inum << " name: " << fileName << std::endl;
 	
 	memcpy(newBuffer, &(fileInode->inum), sizeof(int));
-	std::cout << "1st memcpy done" << std::endl;
+	std::cout << "[File] 1st memcpy done" << std::endl;
 
 	memcpy(newBuffer + sizeof(int), fileName, length+1);
-	std::cout << "2nd memcpy done" << std::endl;
+	std::cout << "[File] 2nd memcpy done" << std::endl;
 
 	// Copy rest of directory 
 	memcpy(newBuffer + sizeof(int) + length + 1
 		, buffer+insertLocation
 		, directoryInode->fileSize - insertLocation);
 
-	std::cout << "3rd memcpy done" << std::endl;
+	std::cout << "[File] 3rd memcpy done" << std::endl;
 
 	// Changed this from file to dir
 	fileWrite(directoryInode, insertLocation, directoryInode->fileSize - insertLocation + sizeof(int) + length + 1, newBuffer); 
 	
-	std::cout << "Added entry" << fileName << "Contents of buffer: inum =" << *((int*) newBuffer) << "and name =" << (newBuffer + sizeof(int)) << std::endl;
+	std::cout << "[File] Added entry: " << fileName << " Contents of buffer: inum = " << *((int*) newBuffer) << " and name = " << (newBuffer + sizeof(int)) << std::endl;
 	return 0;	
 }
 
@@ -506,7 +506,7 @@ bool File::ToggleInumUsage(int inum) {
 
 int File::Truncate(Inode *inode, off_t size) {
 	long bn, blockOffset;
-	std::cout << "Truncate file inum : " << inode->inum << std::endl;
+	std::cout << "[File] Truncate file inum : " << inode->inum << std::endl;
 
 	if (inode->fileSize > size) {
 		bn = size / log.super_block.bytesPerBlock;
@@ -531,18 +531,18 @@ int File::Truncate(Inode *inode, off_t size) {
 		fileWrite(inode, inode->fileSize, size - inode->fileSize, buffer);
 	} // else size == fileSize, do nothing.
 
-	std::cout << "Truncate: Done" <<std::endl;
+	std::cout << "[File] Truncate: Done" <<std::endl;
 	return 0;
 }
 
 int File::fileGetattr(const char *path, struct stat *stbuf) {
-	std::cout << "Getattr being called." << std::endl;
+	std::cout << "[File] Getattr being called." << std::endl;
     Inode fileInode;
     int error = ReadPath(path, &fileInode);
 	
 	// Check if the path does not exist or is created
 	if (error) {
-		std::cout << "ENOENT in Getattr" << std::endl;
+		std::cout << "[File] ENOENT in Getattr" << std::endl;
 		return error;
 	}
 
@@ -551,11 +551,11 @@ int File::fileGetattr(const char *path, struct stat *stbuf) {
 
 	// Check if the inode of the 'path' is set to some value i.e. directory or file
 	if (fileInode.fileType == static_cast<unsigned int>(fileTypes::NO_FILE)) {
-		std::cout << "NO_FILE in Getattr, inum =" << fileInode.inum << "path =" << path << std::endl;
+		std::cout << "[File] NO_FILE in Getattr, inum = " << fileInode.inum << " path = " << path << std::endl;
 		return -ENOENT;
 	}
 
-    std::cout << "Getattr: Finished readpath" << std::endl;
+    std::cout << "[File] Getattr: Finished readpath" << std::endl;
 
 	// Start setting the values of the stbuf
 	stbuf->st_size = fileInode.fileSize;
@@ -581,7 +581,7 @@ int File::fileGetattr(const char *path, struct stat *stbuf) {
 	stbuf->st_mode |= S_IRWXG;
 	stbuf->st_mode |= S_IRWXO;
 
-	std::cout << "Leaving getAttr" << std::endl;
+	std::cout << "[File] Leaving getAttr" << std::endl;
 	return 0;
 }
 

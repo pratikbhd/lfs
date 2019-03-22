@@ -11,7 +11,7 @@ data(new char[bytes_per_segment + 1]){
 
 //Explicity we have to delete all pointer members of this class to avoid memory leaks.
 Segment::~Segment(){
-        std::cout << "Segment Deleted : " << segmentNumber;
+        std::cout << "[Segment] Segment Deleted : " << segmentNumber;
         delete[] data;  // deallocate
 }
 
@@ -33,11 +33,11 @@ void Segment::Load(unsigned int segment_number) {
                 buffer
               );
     if(res){
-        std::cout << "READ FAIL!" << std::endl;
+        std::cout << "[Segment] Segment::Load() READ FAIL!" << std::endl;
     } else {
         std::memcpy(data, buffer, bytesPerSegment + 1);
         loaded = true;
-        std::cout << "Segment Cached : " << segmentNumber << std::endl;   
+        std::cout << "[Segment] Segment::Load() Segment Cached : " << segmentNumber << std::endl;   
     }
 }
 
@@ -45,7 +45,7 @@ void Segment::Erase(){
     unsigned int block_number = (segmentNumber*sectorsPerSegment)/FLASH_SECTORS_PER_BLOCK;
     int res = Flash_Erase(flash, block_number, sectorsPerSegment/FLASH_SECTORS_PER_BLOCK);
     if (res)
-        std::cout << "Erasing the segment failed";
+        std::cout << "[Segment] Segment::Erase() Erasing the segment failed";
 }
 
 void Segment::ForceFlush(){
@@ -68,7 +68,7 @@ void Segment::Flush(){
                  data
                );
     if(res)
-        std::cout << "Flushing the Segment :" << segmentNumber << "to flash failed!";
+        std::cout << "[Segment] Segment::Flush() Flushing the Segment :" << segmentNumber << "to flash failed!";
 
     loaded = false;
 }

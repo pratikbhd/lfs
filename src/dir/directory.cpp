@@ -64,7 +64,7 @@ int Directory::makeDirectory(const char *path, mode_t mode) {
 	error = file.ReadPath(path, &directoryInode);
 	// If no error shows up, it means the file/directory in the path is already present. Throw an error in this case
 	if (!error) {
-		std::cout << "MakeDirectory: File" << path << "already exists" << std::endl;
+		std::cout << "[Directory] MakeDirectory: File: " << path << "already exists" << std::endl;
 		return -EEXIST;
 	}
 
@@ -73,7 +73,7 @@ int Directory::makeDirectory(const char *path, mode_t mode) {
 	
 	// If an error shows up, there was a problem creating the file/directory on the path
 	if (error) {
-		std::cout << "makeDirectory: Could not create dir" << path << std::endl;
+		std::cout << "[Directory] makeDirectory: Could not create dir" << path << std::endl;
 		return error;
 	}
 
@@ -83,20 +83,20 @@ int Directory::makeDirectory(const char *path, mode_t mode) {
 	// If an error shows up, it could not read the file/directory given in the path
 	// This is an error because we just created one above
 	if (error) {
-		std::cout << "makeDirectory: Directory" << path << "was not created" << std::endl;
+		std::cout << "[Directory] makeDirectory: Directory" << path << "was not created" << std::endl;
 	} 
 	else {
 		// The directory was created successfullly. Print it's debug information
-		std::cout << "makeDirectory" << std::endl;
-		std::cout << "inum = " << directoryInode.inum << std::endl;
-		std::cout << "type =" << (directoryInode.fileType == static_cast<char>(fileTypes::DIRECTORY) ? "Directory" : "File") << std::endl;
+		std::cout << "[Directory] makeDirectory" << std::endl;
+		std::cout << "[Directory] inum = " << directoryInode.inum << std::endl;
+		std::cout << "[Directory] type =" << (directoryInode.fileType == static_cast<char>(fileTypes::DIRECTORY) ? "Directory" : "File") << std::endl;
 	}
 	return 0;
 }
 
 int Directory::directoryRead(const char *path, char *buffer, size_t length, off_t offset,
                 struct fuse_file_info *fi) {
-    std::cout << "DirectoryRead: length =" << length << "offset" << offset << std::endl;
+    std::cout << "[Directory] DirectoryRead: length =" << length << "offset" << offset << std::endl;
     Inode inode;
     int error = file.ReadPath(path, &inode);
         
@@ -111,7 +111,7 @@ int Directory::directoryRead(const char *path, char *buffer, size_t length, off_
 int Directory::directoryWrite(const char *path, const char *buffer, size_t length, off_t offset,
                 struct fuse_file_info *fi) {
 
-				std::cout << "DirectoryWrite" << std::endl;
+				std::cout << "[Directory] DirectoryWrite" << std::endl;
         Inode inode;
         int error = file.ReadPath(path, &inode);
         
@@ -129,12 +129,12 @@ int Directory::directoryWrite(const char *path, const char *buffer, size_t lengt
 		Inode dirInode;
 		int error = file.ReadPath(path, &dirInode);
 		if (error) {
-			std::cout << "Exists: Could not find path " << path << std::endl;
+			std::cout << "[Directory] Exists: Could not find path " << path << std::endl;
 			return -ENOENT;
 		}
 
 		if (dirInode.inum == static_cast<unsigned int>(reserved_inum::NOINUM)){
-			std::cout << "Exists: No inum assigned for path: " << path << std::endl;
+			std::cout << "[Directory] Exists: No inum assigned for path: " << path << std::endl;
 			return -ENOENT;
 		}
 
@@ -158,10 +158,10 @@ int Directory::directoryReaddir(const char *path,
 	int error = file.ReadPath(path, &dirInode);
 	
 	if (error) {
-		std::cout << "Readdir: Could not find path " << path << std::endl;
+		std::cout << "[Directory] Readdir: Could not find path " << path << std::endl;
 		return error;
 	} else if (dirInode.fileType != static_cast<char>(fileTypes::DIRECTORY)) {
-		std::cout << "Readdir: " << path << "is not a directory. Filetype is " << dirInode.fileType << std::endl;
+		std::cout << "[Directory] Readdir: " << path << "is not a directory. Filetype is " << dirInode.fileType << std::endl;
 		return -ENOTDIR;
 	}
 	
@@ -170,10 +170,10 @@ int Directory::directoryReaddir(const char *path,
   filler(buf, ".", &st, 0);
   filler(buf, "..", &st, 0);
 	
-	std::cout << "Readdir: Filled buf with . .." << std::endl;
+	std::cout << "[Directory] Readdir: Filled buf with . .." << std::endl;
 	count = 0;
 	length = dirInode.fileSize;
-	std::cout << "Readdir: Dir " << path << "has size " << dirInode.fileSize << std::endl;
+	std::cout << "[Directory] Readdir: Dir " << path << "has size " << dirInode.fileSize << std::endl;
     
 	
   for (i = 0; i < length; i += nRead) {
@@ -183,29 +183,29 @@ int Directory::directoryReaddir(const char *path,
 		count++;
   	}
 	
-	std::cout << "Readdir: Return, " << count << std::endl;
+	std::cout << "[Directory] Readdir: Return, " << count << std::endl;
   return 0;
 }
 
 int Directory::innerReadDir(char *directory, int *inum, char *name, int *lengthRead) {
 	
-	std::cout << "internalReadDir" << std::endl;
+	std::cout << "[Directory] internalReadDir" << std::endl;
 	char *startName = directory + sizeof(int);
 	int i;
 	
 	memcpy(inum, directory, sizeof(int));
 	*lengthRead = sizeof(int);
-	std::cout << "lengthRead starts " << *lengthRead << std::endl;
+	std::cout << "[Directory] lengthRead starts " << *lengthRead << std::endl;
 	
 	for (i = 0; startName[i] != '\0'; i++, (*lengthRead)++) {
-		std::cout << "Iterate readDir, read char " << startName[i] << std::endl;
+		std::cout << "[Directory] Iterate readDir, read char " << startName[i] << std::endl;
 		name[i] = startName[i];
 	}
 
 	name[i] = '\0';
 	(*lengthRead)++;
 	
-	std::cout << "internalReadDir: Return, lengthRead = " << *lengthRead << std::endl;
+	std::cout << "[Directory] internalReadDir: Return, lengthRead = " << *lengthRead << std::endl;
 	return 0;
 }
 

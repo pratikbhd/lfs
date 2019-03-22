@@ -64,6 +64,7 @@ void lfs_init_superblock(Log *l){
 }
 
 void lfs_init_segmentsummary(Log *l){
+    std::cout << "writing segment summary block" << std::endl;
     for(unsigned int i=1; i < (*l).super_block.segmentCount; i++) {
         block_usage b[(*l).super_block.blocksPerSegment];
         unsigned int j = 0;
@@ -77,7 +78,6 @@ void lfs_init_segmentsummary(Log *l){
             b[j].inum = static_cast<unsigned int>(reserved_inum::NOINUM);
         }
         unsigned int offset = i*(((*l).super_block.sectorsPerBlock)*((*l).super_block.blocksPerSegment));
-        std::cout << "writing segment summary at offset:" << offset << std::endl;
         int res = Flash_Write((*l).flash, offset, (*l).super_block.sectorsPerBlock, b);
         if (res) {
             std::cout << "MKLFS summary map failed: " << offset << std::endl;
@@ -180,15 +180,15 @@ int main(int argc, char** argv)
     {
         switch (ch) {            
             case 'b':
-                blocks_per_segment = atol(optarg);
+                sectors_per_block = atol(optarg);
                 break;
 
             case 'l':
-                no_of_segments = atol(optarg);
+                blocks_per_segment = atol(optarg);
                 break;
            
             case 's':
-                sectors_per_block = atol(optarg);
+                no_of_segments = atol(optarg);
                 break;
             
             case 'w':
@@ -207,10 +207,10 @@ int main(int argc, char** argv)
 
     // Create the LFS file system
     lfs_create(no_of_segments, blocks_per_segment, wear_limit, file_name);
-
     unsigned int blocks;
     Log log = Log();
     log.flash = Flash_Open(file_name, 0, &blocks);
+    std::cout << " s: "<< no_of_segments << " l: " << blocks_per_segment << " b: " << sectors_per_block << " blks: " << blocks << " w: " << wear_limit;
     log.super_block = SuperBlock(no_of_segments, blocks_per_segment, sectors_per_block, blocks, wear_limit);
     lfs_init_superblock(&log);
     lfs_init_checkpoint(&log);
@@ -219,5 +219,4 @@ int main(int argc, char** argv)
     Flash_Close(log.flash);
 
     std::cout<< "MKLFS Complete!" << std::endl;
-    std::cin.get();
 }

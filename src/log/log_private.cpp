@@ -83,25 +83,25 @@ void Log::checkpoint() {
     /* Erase first segment for flash metadata */
     int res = Flash_Erase(flash, 0, 1);
     if (res) {
-        std::cout << "Erasing superblock on flash failed"; 
+        std::cout << "[Log] Erasing superblock on flash failed"; 
         return;
     }
     
     res = Flash_Write(flash, LOG_IFILE_OFFSET, 1, &iFile);
     if (res) {
-        std::cout << "iFile write failed";
+        std::cout << "[Log] iFile write failed";
         return;
     }
 
     res = Flash_Write(flash, LOG_SUPERBLOCK_OFFSET, 1, &super_block);
     if (res) {
-        std::cout << "superblock write failed";
+        std::cout << "[Log] superblock write failed";
         return;
     }
 
     res = Flash_Write(flash, first ? LOG_CP1_OFFSET : LOG_CP2_OFFSET, 1, &current);
     if (res) {
-        std::cout << "checkpoint write failed";
+        std::cout << "[Log] checkpoint write failed";
         return;
     }
 

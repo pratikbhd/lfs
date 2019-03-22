@@ -53,7 +53,7 @@
             "type": "shell",
             "command": "g++",
             "args" :[
-                "-g", "-o", "LFS", "-I", "headers", 
+                "-g", "-o", "lfs", "-I", "headers", 
                 "src/LFS/LFS.cpp", "src/LFS/fuse_functions.cpp", 
                 "src/dir/directory.cpp", "src/file/file.cpp",
                 "src/log/log.cpp", "src/log/log_private.cpp", 

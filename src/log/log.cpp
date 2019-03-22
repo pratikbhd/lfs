@@ -8,7 +8,7 @@ void Log::GetSuperBlock() {
     super_block = SuperBlock();
     int res = Flash_Read(flash, LOG_SUPERBLOCK_OFFSET, 1, buffer);
     if (res) {
-        std::cout <<"SuperBlock READ FAIL" << std::endl;
+        std::cout <<"[Log] SuperBlock READ FAIL" << std::endl;
     }
     std::memcpy(&super_block, buffer, sizeof(SuperBlock)+1);
 }
@@ -18,7 +18,7 @@ void Log::GetiFile() {
     iFile = Inode();
     int res = Flash_Read(flash, LOG_IFILE_OFFSET, 1, buffer);
     if (res) {
-        std::cout <<"iFile READ FAIL" << std::endl;
+        std::cout <<"[Log] iFile READ FAIL" << std::endl;
     }
     std::memcpy(&iFile, buffer, sizeof(Inode));
 }
@@ -28,7 +28,7 @@ Checkpoint Log::GetCheckpoint(unsigned int sector){
     char buffer[FLASH_SECTOR_SIZE+2];
     Checkpoint cp = Checkpoint();
     int res = Flash_Read(flash, sector, 1, buffer);
-    if (res) std::cout << "Checkpoint Read failed at sector :" << sector << std::endl;
+    if (res) std::cout << "[Log] Checkpoint Read failed at sector :" << sector << std::endl;
     std::memcpy(&cp, buffer, sizeof(Checkpoint));
     return cp;
 }
@@ -209,10 +209,10 @@ bool Log::Write(Inode *target, unsigned int blockNumber, int length, const char*
     int max_block_pointers = 4 + (super_block.bytesPerBlock/sizeof(log_address));
     
     if (length > ((super_block.bytesPerBlock)*max_block_pointers)) {
-        throw "Log::Write() - File length exceeds the maximum permitted file size!";
+        throw "[Log] Log::Write() - File length exceeds the maximum permitted file size!";
     }
 
-	std::cout << "Write Enter ==> length: "<< length <<", file size: "<< (*target).fileSize << ", in->inum: " << (*target).inum << std::endl;
+	std::cout << "[Log] Write Enter ==> length: "<< length <<", file size: "<< (*target).fileSize << ", in->inum: " << (*target).inum << std::endl;
 
     Inode *update = target;
 
@@ -223,7 +223,7 @@ bool Log::Write(Inode *target, unsigned int blockNumber, int length, const char*
     /* Do the write one block at a time.*/
 	int i = 0; // Buffer offset, number of blocks
     while (length > 0) {
-        if (blockNumber > max_block_pointers) throw "Log::Write() - File block numbers exceeds the maximum permitted file size!";
+        if (blockNumber > max_block_pointers) throw "[Log] Log::Write() - File block numbers exceeds the maximum permitted file size!";
 
         // get new log end address
         log_address address = getNewLogEnd();
@@ -243,10 +243,10 @@ bool Log::Write(Inode *target, unsigned int blockNumber, int length, const char*
 
         // Set usage. Should this be done twice to make sure?
         UpdateInode(update, blockNumber, address);
-        std::cout << "Write Block (input address params)==> blocknum: " << blockNumber << " sn: " << address.segmentNumber << " blk_offset: " << address.blockOffset;
+        std::cout << "[Log] Write Block (input address params)==> blocknum: " << blockNumber << " sn: " << address.segmentNumber << " blk_offset: " << address.blockOffset;
         
         log_address verify = GetLogAddress(*update, blockNumber);
-        std::cout << "Write Block (updated address params)==> blocknum: " << blockNumber << " sn: " << verify.segmentNumber << " blk_offset: " << verify.blockOffset;
+        std::cout << "[Log] Write Block (updated address params)==> blocknum: " << blockNumber << " sn: " << verify.segmentNumber << " blk_offset: " << verify.blockOffset;
 
         // one block written successfully.
         length -= super_block.bytesPerBlock;
@@ -276,7 +276,7 @@ bool Log::Write(Inode *target, unsigned int blockNumber, int length, const char*
             int end   = begin + sizeof(Inode);
             int split_point = 0;
             
-            std::cout << "Write iFile INUM: " << update->inum << " BEGIN: " << begin << " END: " << end << std::endl;
+            std::cout << "[Log] Write iFile INUM: " << update->inum << " BEGIN: " << begin << " END: " << end << std::endl;
 
             //The iFile is a non continuous set of blocks identified by block number we try to maximize the usage of these blocks, if inode doesnt fit perfectly.
             if (begin % super_block.bytesPerBlock > end % super_block.bytesPerBlock) {
@@ -301,7 +301,7 @@ bool Log::Write(Inode *target, unsigned int blockNumber, int length, const char*
                 bytes_done = sizeof(Inode);
             }
 
-            std::cout << "Write iFile split_point: " << split_point << " BLOCKNUM: " << iFile_block_number << " offset: " << offset << " bytes_done: "<< bytes_done << std::endl;
+            std::cout << "[Log] Write iFile split_point: " << split_point << " BLOCKNUM: " << iFile_block_number << " offset: " << offset << " bytes_done: "<< bytes_done << std::endl;
 
             bool new_ifile_block = false;
             if(GetLogAddress(iFile, iFile_block_number).segmentNumber == 0) {
