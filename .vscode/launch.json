@@ -108,7 +108,7 @@
             "name": "(gdb) LFS",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/LFS",
+            "program": "${workspaceFolder}/lfs",
             "args": ["flash_test", "/tmp/fs"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

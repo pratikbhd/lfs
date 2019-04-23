@@ -4,6 +4,9 @@
 
 Log::~Log(){
     delete log_end;
+    for(int i = 0; i< sizeof(cache) / sizeof(cache[0]); i++) {
+        delete cache[i];
+    } 
 }
 
 unsigned int Log::summaryBlockSize(){

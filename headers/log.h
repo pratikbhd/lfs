@@ -37,6 +37,9 @@ class Log {
         SuperBlock super_block;
         Segment *log_end;
 
+        Segment* cache[10];
+        int cache_round_robin;
+
         Checkpoint cp1;
         Checkpoint cp2;
 

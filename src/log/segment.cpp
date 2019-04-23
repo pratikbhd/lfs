@@ -54,7 +54,7 @@ void Segment::ForceFlush(){
 }
 
 void Segment::Flush(){
-    //only an active segment is written back to cache. This segment should be the log end.
+    //only an active segment is written back to log. This segment should be the log end.
     if(!active) return;
     //A Segment is not allocated to a valid flash segment.
     if(!loaded) return;

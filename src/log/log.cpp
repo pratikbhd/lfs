@@ -35,6 +35,13 @@ Checkpoint Log::GetCheckpoint(unsigned int sector){
 
 void Log::InitializeCache(){
     log_end = new Segment(flash, super_block.bytesPerSegment, super_block.sectorsPerSegment, true);
+    for(int i = 0; i< sizeof(cache) / sizeof(cache[0]); i++) {
+        // cache the first 10 segments starting from segment 1
+        cache[i] = new Segment(flash, super_block.bytesPerSegment, super_block.sectorsPerSegment, false);
+        (*cache[i]).Load(i+1);
+    }
+
+    cache_round_robin= 0;
 }
 
 log_address Log::GetLogAddress(unsigned int segment_number, unsigned int block_number) {
@@ -87,13 +94,22 @@ void Log::Read(log_address address, int length, char *buffer) {
 
     /*  Update Log End segment */
     if((*log_end).GetSegmentNumber() != address.segmentNumber) {
-        (*log_end).Flush();
-        (*log_end).Load(address.segmentNumber);
-    } 
+        for (int i = 0; i < sizeof(cache) / sizeof(cache[0]); i++) {
+            if ((*cache[i]).GetSegmentNumber() == address.segmentNumber){
+                memcpy(buffer, (*cache[i]).data + offsetBytes, length);
+                return;
+            }
+        }
+        
+        (*cache[cache_round_robin]).Load(address.segmentNumber);
+        if (cache_round_robin == sizeof(cache) - 1){
+            cache_round_robin = 0;
+        } else {
+            cache_round_robin++;
+        }
+    }
     
-    //TODO Add support to read from the segment cache
-
-    memcpy(buffer, (*log_end).data + offsetBytes, length);
+    memcpy(buffer, (*log_end).data + offsetBytes, length);   
 }
 
 void Log::Write(log_address address, int length, char *buffer) {

@@ -1,3 +1,11 @@
+# TODO
+
+* Log layer
+    * segment caching
+    * moving checkpoints
+    * segment cleaner
+    * move inode references out
+
 # Log Structured File System in C++
 
 This repository holds an implementation of a log structured file system that is mounted on a flash device and uses the FUSE user level file system interface to intercept file system calls to the mount point in the linux kernel to the mounted flash device.
