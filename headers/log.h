@@ -10,8 +10,8 @@ struct inputState{
     char* lfsFile;
     // int cacheSize;
     int interval;
-    // int startCleaner;
-    // int stopCleaner;
+    int startCleaner;
+    int stopCleaner;
 };
 
 class Log {

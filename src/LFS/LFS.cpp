@@ -162,6 +162,8 @@ int main(int argc, char *argv[])
     inputState state = inputState();
     state.lfsFile = flash_file;
     state.interval = interval;
+    state.startCleaner = start;
+    state.stopCleaner = stop;
 
     std::cout << "lfs file: " << state.lfsFile << std::endl;
     std::cout << "interval: " << state.interval << std::endl;

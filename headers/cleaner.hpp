@@ -1,11 +1,14 @@
 #include "file.hpp"
 
 class Cleaner {
+    private:
+    	File file;
+        inputState state;
+        void UpdateInode(Inode in, log_address before, log_address after);
+        bool MergeSegments(int *segments);
+        bool CleanBlocks();
+        Inode GetInode(int inum);
     public:
-    Cleaner(char* lfsFile);
-	File file;
-
-    void UpdateInode(Inode in, log_address before, log_address after);
-    bool MergeSegments(int *segments);
-    Inode Cleaner::GetInode(int inum);
+        Cleaner(inputState state);
+        bool Clean();
 };

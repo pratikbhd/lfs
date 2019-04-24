@@ -1,7 +1,7 @@
 #include <iostream>
 #include "cleaner.hpp"
 
-Cleaner::Cleaner(char* lfsFile): file(File(lfsFile)) {
+Cleaner::Cleaner(inputState state): file(File(state.lfsFile)), state(state) {
 	
 }
 
@@ -101,4 +101,77 @@ bool Cleaner::MergeSegments(int *segments)
     std::cout << "CLEANER_MERGE_SEGMENTS END" << std::endl;
 
     return true;
+}
+
+
+bool Cleaner::CleanBlocks()
+{
+    std::cout << "CleanBlocks BEGIN" << std::endl;
+    int total = 0;
+    //TODO switch from calloc to some other alternative
+    int *freeBlocks = (int*)calloc(sizeof(int), file.log.super_block.sectorCount+2);
+    int j = 1, i = 0;
+    
+    for (; i <= file.log.super_block.segmentCount; i++) {
+        int local_total = file.log.GetFreeBlockCount(i);
+            
+        /* Note too full, can merge */
+        if ( local_total > 0 ) {
+            total += local_total;
+            *(freeBlocks+j) = i;
+            j++;
+        }
+
+        std::cout << "FREE COUNT TOTAL: " << total << std::endl;
+
+        /* Check if we have found enough free blocks to do merging */
+        if (total > file.log.super_block.blocksPerSegment && i > 1) {
+            *(freeBlocks+j) = 0;
+            break;
+        }
+    }
+    
+    std::cout << "CLEANER NUMBER TO MERGE: " << i << std::endl;
+
+    MergeSegments(freeBlocks);
+    
+    std::cout << "CleanBlocks END" << std::endl;
+
+    free(freeBlocks);
+
+    return true;
+}
+
+/**
+ * Perform the clean operation.
+ */
+bool Cleaner::Clean()
+{
+	
+    std::cout << "CLEANER_CLEAN BEGIN" <<std::endl;
+    std::cout <<"CLEANER USED SEGS: " << file.log.super_block.usedSegments << std::endl;
+    std::cout <<"CLEANER TOTAL SEGS: " << file.log.super_block.segmentCount << std::endl;
+    std::cout <<"CLEANER START: " << state.startCleaner << std::endl;
+    std::cout <<"CLEANER STOP: "<< state.stopCleaner << std::endl;
+
+    bool rv = true;
+
+    if(state.startCleaner >= (file.log.super_block.segmentCount - file.log.super_block.usedSegments)) {
+        int blocksToFree = state.stopCleaner - state.startCleaner;
+        std::cout << "CLEANER will clean: " << blocksToFree << std::endl;
+        while(blocksToFree > 0) {
+            bool didClean = CleanBlocks();
+            if(!didClean) {
+                std::cout << "CLEANER DID NOT CLEAN BLOCK!!!!" << std::endl;
+                rv = false;
+                break;
+            }
+            blocksToFree--;
+        }
+    } else {
+        std :: cout << "Clean() RETURNS TRUE" << std::endl;
+    }
+
+    //TODO checkpoint?
+    return rv;
 }
