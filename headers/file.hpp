@@ -7,10 +7,28 @@
 #include "log.h"
 
 class File {
+    private:
+        unsigned int operation_count;
+        unsigned int max_operations = 1000;
+        //Get the iFile from the flash.
+        void getiFile();
+        //Get a log address object stored at the specified index in the Inode block pointers.
+        log_address getLogAddress(Inode i, int index);
+        //Get next available free block at the log end.
+        log_address getNewLogEnd();
+        //Update the block pointer of the Inode i at the given block pointer array index to a new log address.
+        bool updateInode(Inode *i, int index, log_address address);
+        //Write or update a file with Inode and contents in buffer starting at the specified blocknumber upto length of buffer in bytes. 
+        //length cannot exceed the maximum permitted file size. returns false if write cannot be completed.
+        bool write(Inode *in, unsigned int blockNumber, int length, const char* buffer);
+        //Trigger a checkpoint to flash.
+        void checkpoint();
     public:
     std::vector<bool> inodes_used; // This is an array of 0s and 1s that keep track of the current inodes being used in the ifile
 
     Log log;
+    Inode iFile;
+
     File(char* lfsFile); // Need to pass the flashfile
 
     ~File(); //Force Flush the log layer to flash and close flash.
@@ -83,4 +101,7 @@ class File {
     int fileGetattr(const char *path, struct stat *stbuf);
 
     int Truncate(Inode *inode, off_t size);
+
+    //Flush all log layer objects from memory to the flash.
+    void Flush();
 };

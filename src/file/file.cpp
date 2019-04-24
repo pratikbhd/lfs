@@ -21,11 +21,11 @@ File::File(char* lfsFile) {
     log.InitializeCache();
     log.cp1 = log.GetCheckpoint(LOG_CP1_OFFSET);
     log.cp2 = log.GetCheckpoint(LOG_CP2_OFFSET);
-    log.GetiFile();
+    getiFile();
 }
 
 File::~File(){
-	log.Flush();
+	Flush();
 	Flash_Close(log.flash);
 }
 
@@ -42,11 +42,11 @@ int File::fileWrite(Inode *inode, int offset, int length, const void *buffer) {
     char data[GetMaxFileSize()];
     int writeIndex=0, writeOffset=0;
 
-    while (log.GetLogAddress(*inode, writeIndex).segmentNumber != 0 ) { //BLOCK_NULL_ADDR) {
+    while (getLogAddress(*inode, writeIndex).segmentNumber != 0 ) { //BLOCK_NULL_ADDR) {
         std::cout << "[File] Write offset: " << writeOffset << std::endl;
         std::cout << "[File] bytesPerBlock: " << log.super_block.bytesPerBlock << std::endl;
 
-        log.Read(log.GetLogAddress(*inode, writeIndex), log.super_block.bytesPerBlock, data+writeOffset);
+        log.Read(getLogAddress(*inode, writeIndex), log.super_block.bytesPerBlock, data+writeOffset);
         writeOffset+=log.super_block.bytesPerBlock;
         writeIndex++;
 	}
@@ -83,7 +83,7 @@ int File::fileWrite(Inode *inode, int offset, int length, const void *buffer) {
     }
 
 	// Write entire file	
-	log.Write(inode,
+	write(inode,
 			offset / (log.super_block.bytesPerBlock),
 			length + (offset % log.super_block.bytesPerBlock), // Write all data including the beginning of first block
 			data + offset - (offset % (log.super_block.bytesPerBlock))
@@ -126,7 +126,7 @@ int File::fileRead(Inode *inode, int offset, int length, char *buffer) {
 
     // First, read the first partial block 
 	if (remainingBlockPart != 0) {
-		address = log.GetLogAddress(*inode, index);
+		address = getLogAddress(*inode, index);
 		log.Read(address, log.super_block.bytesPerBlock, block);
 
         // Copy to bufferPosition the contents of block after the offset, but at most length bytes
@@ -140,7 +140,7 @@ int File::fileRead(Inode *inode, int offset, int length, char *buffer) {
 	
     // Read the remaining blocks, including the last partial block
 	while (length > 0) {
-		address = log.GetLogAddress(*inode, index);
+		address = getLogAddress(*inode, index);
 		readCount = (length > log.super_block.bytesPerBlock-remainingBlockPart ? log.super_block.bytesPerBlock-remainingBlockPart : length); // Read a whole block or whatever remains
 		log.Read(address, readCount, block);
 		memcpy(bufferPosition, block, readCount);
@@ -270,11 +270,11 @@ int File::CreateInode(Inode *inode) {
 
 	int	i, length;
 	char buffer[GetMaxFileSize()];
-	Inode *inodes, ifile = log.iFile;
+	Inode *inodes;
 
-	fileRead(&ifile, 0, ifile.fileSize, buffer);
+	fileRead(&iFile, 0, iFile.fileSize, buffer);
 	inodes = (Inode *) buffer;
-	length = ifile.fileSize / sizeof(Inode);
+	length = iFile.fileSize / sizeof(Inode);
 	for (i = 0; i < length; i++) {
 		// Check if any inode's filetype has been assigned to NO_FILE which suggests that it is a free inode
 		if (inodes[i].fileType == static_cast<char>(fileTypes::NO_FILE) && inodes[i].inum != static_cast<unsigned int>(reserved_inum::NOINUM)) {
@@ -285,7 +285,7 @@ int File::CreateInode(Inode *inode) {
 	}
 	
 	// No free inode was found, check if a new inode can be assigned to the ifile without exceeding the maximum file size liimitation
-	if (ifile.fileSize + sizeof(Inode) > GetMaxFileSize())
+	if (iFile.fileSize + sizeof(Inode) > GetMaxFileSize())
 		return -EFBIG;
 
 	// Allocate a new inode if there is enough space
@@ -294,7 +294,7 @@ int File::CreateInode(Inode *inode) {
 	inode->fileType = static_cast<char>(fileTypes::NO_FILE);
 	inode->inum = length;
 	std::cout << "[File] CreateInode: Writing inode: " << inode->inum << " to ifile " << std::endl;
-	fileWrite(&ifile, ifile.fileSize, sizeof(Inode), inode);
+	fileWrite(&iFile, iFile.fileSize, sizeof(Inode), inode);
 	std::cout << "[File] CreateInode: Finished writing inode: " << inode->inum << std::endl;
 	return 0;
 }
@@ -394,10 +394,8 @@ int File::ReadPath(const char *path, Inode *inode) {
 }
 
 Inode File::ReturnInode(int inum) {
-	Inode inode,
-		ifile = log.iFile;
-
-	int length = fileRead(&ifile, inum*sizeof(Inode), sizeof(Inode), (char*)&inode);  
+	Inode inode;
+	int length = fileRead(&iFile, inum*sizeof(Inode), sizeof(Inode), (char*)&inode);  
 	std::cout << "[File] GetInode: Read: " << length << " bytes from ifile, inum = " << inum << " inode->inum = " << inode.inum << std::endl;
 	return inode;
 }
@@ -521,15 +519,15 @@ int File::Truncate(Inode *inode, off_t size) {
 		// First block is not deleted, unless size == 0
 		// just set inode->fileSize = size
 		if (blockOffset == 0) {
-			log.Free(log.GetLogAddress(*inode, bn));
-			log.UpdateInode(inode, bn, log.GetLogAddress(0, 0)); //BLOCK_NULL_ADDR;
+			log.Free(getLogAddress(*inode, bn));
+			updateInode(inode, bn, log.GetLogAddress(0, 0)); //BLOCK_NULL_ADDR;
 		}
 		// Free all blocks which are completely truncated
-		for (bn++; /*i < 4 &&*/ log.GetLogAddress(*inode, bn).segmentNumber != 0; bn++) {
-			log.Free(log.GetLogAddress(*inode, bn));
-			log.UpdateInode(inode, bn, log.GetLogAddress(0, 0)); //BLOCK_NULL_ADDR;
+		for (bn++; /*i < 4 &&*/ getLogAddress(*inode, bn).segmentNumber != 0; bn++) {
+			log.Free(getLogAddress(*inode, bn));
+			updateInode(inode, bn, log.GetLogAddress(0, 0)); //BLOCK_NULL_ADDR;
 		}
-		fileWrite(&log.iFile, inode->inum * sizeof(Inode), sizeof(Inode), inode);
+		fileWrite(&iFile, inode->inum * sizeof(Inode), sizeof(Inode), inode);
 
 	} else if (inode->fileSize < size) {
 		char buffer[size - inode->fileSize]; // buffer of 0's to fill out file
@@ -590,3 +588,8 @@ int File::fileGetattr(const char *path, struct stat *stbuf) {
 	return 0;
 }
 
+void File::Flush(){
+    (*log.log_end).ForceFlush();
+    operation_count = max_operations;
+    checkpoint();
+}
