@@ -19,7 +19,7 @@ void* Directory::Initialize(struct fuse_conn_info *conn) {
 // void* Directory::Initialize() {
 
 
-	Inode iFile = file.log.iFile; // Inode of the Ifile
+	Inode iFile = file.iFile; // Inode of the Ifile
 	Inode directoryInode; // Inode for the directory
 	Inode inodeArray[iFile.fileSize]; // This is an array of inodes that keeps tracks of the inodes currently being used
 
@@ -39,8 +39,8 @@ void* Directory::Initialize(struct fuse_conn_info *conn) {
 		directoryInode.fileType = static_cast<char>(fileTypes::DIRECTORY);
 		directoryInode.fileSize = 0;
 		file.fileWrite(&directoryInode, 0, 0, NULL);
-		file.log.Flush();
-
+		file.Flush();
+	
 	} else {
 		file.fileRead(&iFile, 0, iFile.fileSize, (char *)&inodeArray);
 		inodes_length = 0;

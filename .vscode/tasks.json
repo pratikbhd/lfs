@@ -55,8 +55,9 @@
             "args" :[
                 "-g", "-o", "lfs", "-I", "headers", 
                 "src/LFS/LFS.cpp", "src/LFS/fuse_functions.cpp", 
-                "src/dir/directory.cpp", "src/file/file.cpp",
-                "src/log/log.cpp", "src/log/log_private.cpp", 
+                "src/dir/directory.cpp", 
+                "src/file/file.cpp", "src/file/file_private.cpp",
+                "src/log/log.cpp", "src/log/log_helper.cpp", 
                 "src/log/segment.cpp", "src/log/superblock.cpp", "src/log/checkpoint.cpp",
                 "src/flash/flash.c", "`pkg-config", "--libs", "--cflags", "fuse`"
             ],
