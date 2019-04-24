@@ -3,6 +3,30 @@
 #include "log.h"
 #include <string>
 
+unsigned int Log::SummaryBlockSize(){
+    return ((sizeof(block_usage) * super_block.blocksPerSegment) / super_block.bytesPerBlock) + 1;
+}
+
+bool Log::SetBlockUsage(log_address address, block_usage record){
+    if(address.segmentNumber == 0)
+        return false;
+
+    char data[summaryBlockBytes()];
+    log_address base = GetLogAddress(address.segmentNumber, 0);
+    Read(base, summaryBlockBytes(), data);
+    char *o = data + (address.blockOffset * sizeof(block_usage));
+    memcpy(o, &record, sizeof(block_usage));
+    Write(base, summaryBlockBytes(), data);
+    return true;
+}
+
+bool Log::ResetBlockUsage(log_address address){
+    block_usage b;
+    b.inum = static_cast<unsigned int>(reserved_inum::NOINUM);
+    b.use = static_cast<char>(usage::FREE);
+    return SetBlockUsage(address, b);
+}
+
 void Log::GetSuperBlock() {
     char buffer[FLASH_SECTOR_SIZE+2];
     super_block = SuperBlock();
@@ -138,7 +162,7 @@ void Log::Free(log_address address){
     if (offsetBytes + super_block.bytesPerBlock > super_block.bytesPerSegment)
         throw "Log::Free() - block offset is out of bounds of segment! - " + std::to_string(address.blockOffset);
 
-    resetBlockUsage(address);
+    ResetBlockUsage(address);
 
     /* blocks to be freed should be loaded to main memory */
     if((*log_end).GetSegmentNumber() != address.segmentNumber) {
@@ -164,7 +188,7 @@ bool Log::UpdateInode(Inode *i, int index, log_address address) {
         return false;
     } else if(index < 4) {
         if((*i).block_pointers[index].segmentNumber > 0) {
-            resetBlockUsage((*i).block_pointers[index]);
+            ResetBlockUsage((*i).block_pointers[index]);
         }
         (*i).block_pointers[index] = address;
     } else {
@@ -176,12 +200,12 @@ bool Log::UpdateInode(Inode *i, int index, log_address address) {
         if((*i).indirect_block.segmentNumber > 0) {
             Read((*i).indirect_block, super_block.bytesPerBlock, data);
 
-            resetBlockUsage((*i).indirect_block);
+            ResetBlockUsage((*i).indirect_block);
             (*i).indirect_block = getNewLogEnd();
 
             log_address old = {0,0};
             memcpy(&old, data+offsetBytes, sizeof(log_address));
-            resetBlockUsage(old);
+            ResetBlockUsage(old);
         } else {
             (*i).indirect_block = getNewLogEnd();
         }
@@ -190,11 +214,11 @@ bool Log::UpdateInode(Inode *i, int index, log_address address) {
         //write back indirect block at the log end.
         Write((*i).indirect_block, super_block.bytesPerBlock, data);
         //update block usage of indirect block at log end.
-        setBlockUsage((*i).indirect_block, b);
+        SetBlockUsage((*i).indirect_block, b);
     }
 
     //update block usage of new block pointer of inode in flash
-    setBlockUsage(address, b);
+    SetBlockUsage(address, b);
     return true;
 }
 
@@ -347,6 +371,30 @@ bool Log::Write(Inode *target, unsigned int blockNumber, int length, const char*
 }
 
 
+//TODO:
+//Log::Write -> should report wear and callers should handle this.
+//Log::UpdateInode -> Should handle large files whose indirect block pointer list can exceed a block. Traverse block pointer list recursively. (low priority, can handle upto 1024 bytes of indirect blocks)
+//Read the log end address from the checkpoint.
+
+//Done:
+//Internal:
+//log_set_block_free -> ResetBlockUsage()
+//log_set_block -> SetBlockUsage()
+//log_write -> Write(log_address address, int length, char *buffer)
+//log_get_higher_addr() -> getNextFreeBlock
+//log_checkpoint_update() -> checkpoint()
+//log_get_next_address() -> getNewLogEnd
+//Required by Cleaner:
+//log_get_block_record -> GetBlockUsage()
+//
+//Required by file layer:
+//log_write_inode -> Write(Inode *in, unsigned int blockNumber, int length, const char* buffer)
+//log_set_inode_addr -> UpdateInode()
+//log_free -> Free()
+//log_get_inode_addr -> GetLogAddress(Inode i, int index)
+//log_create_addr -> GetLogAddress(unsigned int segment_number, unsigned int block_number)
+//log_read -> Read()
+//
 //TODO:
 //Log::Read -> Should support caching recently read segments. A round robin array should suffice.
 //Log::Write -> should report wear and callers should handle this.

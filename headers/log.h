@@ -20,7 +20,6 @@ class Log {
         unsigned int operation_count;
         unsigned int max_operations = 1000;
 
-        unsigned int summaryBlockSize();
         unsigned int summaryBlockBytes();
 
         log_address getNextFreeBlock(log_address current);
@@ -28,11 +27,13 @@ class Log {
         //Trigger a checkpoint to flash.
         void checkpoint();
 
-        //Set a block usage record for a log address. Returns false if the operation is invalid or fails.
-        bool setBlockUsage(log_address address, block_usage record);
-        //Reset a block usage record to be unused and have no inum associated with it.
-        bool resetBlockUsage(log_address address);
     public:
+        unsigned int SummaryBlockSize();
+        //Set a block usage record for a log address. Returns false if the operation is invalid or fails.
+        bool SetBlockUsage(log_address address, block_usage record);
+        //Reset a block usage record to be unused and have no inum associated with it.
+        bool ResetBlockUsage(log_address address);
+
         Flash flash;
         SuperBlock super_block;
         Segment *log_end;

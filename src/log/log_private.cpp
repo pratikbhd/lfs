@@ -9,10 +9,6 @@ Log::~Log(){
     } 
 }
 
-unsigned int Log::summaryBlockSize(){
-    return ((sizeof(block_usage) * super_block.blocksPerSegment) / super_block.bytesPerBlock) + 1;
-}
-
 unsigned int Log::summaryBlockBytes(){
     return ((sizeof(block_usage) * super_block.blocksPerSegment) + 1);
 }
@@ -24,7 +20,7 @@ log_address Log::getNextFreeBlock(log_address current){
     }
 
     if(current.blockOffset+1 >= super_block.blocksPerSegment) {
-        current.blockOffset = summaryBlockSize();
+        current.blockOffset = SummaryBlockSize();
         current.segmentNumber = current.segmentNumber + 1;
     } else {
         current.blockOffset = current.blockOffset + 1;
@@ -33,7 +29,7 @@ log_address Log::getNextFreeBlock(log_address current){
 
     if(current.segmentNumber >= super_block.segmentCount) {
         current.segmentNumber = 1;
-        current.blockOffset   = summaryBlockSize();
+        current.blockOffset   = SummaryBlockSize();
     }
     return current;
 }
@@ -109,24 +105,4 @@ void Log::checkpoint() {
     }
 
     operation_count = 0;
-}
-
-bool Log::setBlockUsage(log_address address, block_usage record){
-    if(address.segmentNumber == 0)
-        return false;
-
-    char data[summaryBlockBytes()];
-    log_address base = GetLogAddress(address.segmentNumber, 0);
-    Read(base, summaryBlockBytes(), data);
-    char *o = data + (address.blockOffset * sizeof(block_usage));
-    memcpy(o, &record, sizeof(block_usage));
-    Write(base, summaryBlockBytes(), data);
-    return true;
-}
-
-bool Log::resetBlockUsage(log_address address){
-    block_usage b;
-    b.inum = static_cast<unsigned int>(reserved_inum::NOINUM);
-    b.use = static_cast<char>(usage::FREE);
-    return setBlockUsage(address, b);
 }
