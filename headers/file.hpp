@@ -1,7 +1,7 @@
 #pragma once
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h> 
+#include <unistd.h>
 #include <errno.h>
 #include "lfs_enums.h"
 #include "log.h"
@@ -24,7 +24,7 @@ class File {
     /**
     * This function reads in 'length' bytes of information from the file specified by the 'inode' and stores them in the 
     * buffer. Reading starts from 'offset'
-    */ 
+    */
     int fileRead (Inode *inode, int offset, int length, char *buffer);
 
     /**
@@ -38,9 +38,9 @@ class File {
     * The name of the file cannot be larger than the maximum file length specified in enums (lfs_enums.h) fileLength.
     **/
     int fileCreate(const char *name, mode_t mode, struct fuse_file_info *fi);
-    
+
     /**
-    * Reads the 'path' string and checks if the path exists and leads to a file. 
+    * Reads the 'path' string and checks if the path exists and leads to a file.
     * If it does not, an error code is returned and the 'inode' points to undefined data.
     * If successful, it points to the inode of the directory specified by the 'path'
     * This is mainly used to check whether a directory already exists when making a new directory or checking if a new one was made
@@ -58,9 +58,9 @@ class File {
     * This inode is added to the ifile.
     */
     int CreateInode(Inode *inode);
-    
+
     /**
-    * This function adds the (name, inum) pair to the file representing the directory with inode 'dir'. 
+    * This function adds the (name, inum) pair to the file representing the directory with inode 'dir'.
     * TODO: Work more on this. Current implementation is buggy.
     */
     int NewEntry(Inode *dir, Inode *file, const char *fileName);
@@ -71,7 +71,7 @@ class File {
     int ReturnInodeFromBuffer(const char *buf, int length, const char *name, int *inum);
 
     /**
-    * This function returns a pointer to the inode having 'inum' 
+    * This function returns a pointer to the inode having 'inum'
     */
     Inode ReturnInode(int inum);
 

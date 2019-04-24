@@ -41,7 +41,7 @@ class Directory {
 		 */
 		int makeDirectory(const char *path, mode_t mode);
 
-		int directoryReaddir(const char *path, void *buf, fuse_fill_dir_t filler, 
+		int directoryReaddir(const char *path, void *buf, fuse_fill_dir_t filler,
 			off_t offset, struct fuse_file_info *fi);
 
 		int innerReadDir(char *, int *, char *, int *);
@@ -54,5 +54,38 @@ class Directory {
 		int Exists(const char * path);
 
 		int Statfs(const char *path, struct statvfs *stbuf);
+
+		/**
+ 		* Link functions
+ 		*/
+
+		/**
+		 * Creates a file with path <*from> which links to the same file as <*to>.
+		 */
+		int createHardLink(const char *to, const char *from);
+
+		/**
+		 * Creates a symbolic link at <*from> with contents <*to>
+		 */
+		int createSymLink (const char *to, const char *from);
+
+		/**
+ 		* Opens the symbolic link <*path> and stores the path of the linked file in <*buf>.
+ 		*/
+		int readLink(const char *path, char *buf, size_t bufsize);
+
+		/**
+ 		* Removes <*name> from its directory, and decrements the hardlink count of the files inode. If the count is 0, then
+ 		* the file is deleted from the log using File_Delete.
+ 		*/
+		int Directory_Unlink(const char *name);
+
+		/**
+ 		* Copies all of <path> except for the last link into a fresh buffer pointed to by <*parentPath> with terminating null byte.
+ 		* The contents following are stored in <*child>, stripped of all '/' characters. Space is allocated for both using malloc
+ 		* and should be freed by the caller. The length of parentPath is returned upon success. Otherwise, a negative number indicates
+ 		* an error
+ 		*/
+		int Directory_SplitPathAtEnd(const char *path, char **parentPath, char **child);
 
 };
