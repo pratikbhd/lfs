@@ -109,4 +109,10 @@ class Directory {
  		* The inodes are updated in the log.
  		*/
 		int deleteEntry(Inode *dir, Inode *ino, const char *name);
+
+		/**
+ 		* Renames the entry <from> with the name <to>
+ 		*/
+		int rename(const char *from, const char *to);
+	
 };

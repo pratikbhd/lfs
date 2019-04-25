@@ -542,3 +542,77 @@ int Directory::unlink(const char *path) {
 
   return err;
 }
+
+int Directory::rename(const char *from, const char *to) {
+	char *fDirPath, *fName, *tDirPath, *tName;
+
+	Inode fDir, tDir, ino, tino;
+
+	int err, returnval = 0;
+
+	splitPathAtEnd(from, &fDirPath, &fName);
+	splitPathAtEnd(to, &tDirPath, &tName);
+
+	std::cout << "Directory Rename:\n\tFrom: " << from << "\n\tParent: " << fDirPath << "\n\tName: " << fName << "\n\tTo: " << to << "\n\tParent: " << tDirPath << "\n\tName: " << tName << "\n" << std::endl;
+	
+	err = file.ReadPath(fDirPath, &fDir);
+	if (err) {
+		std::cout << "Rename: Error " << strerror(err) << " while reading path " << fDirPath << "\n" << std::endl;
+		returnval = err;
+		goto done;
+	}
+
+	err = file.ReadPath(from, &ino);
+	if (err) {
+		std::cout << "Rename: Error " << strerror(err) << " while reading path " << fDirPath << "\n" << std::endl;
+		returnval = err;
+		goto done;
+	}
+	
+	// TODO: Support all file types
+	if (ino.fileType != static_cast<char>(fileTypes::PLAIN_FILE)) {
+		std::cout << "Rename: " << from << " has invalid filetype " << ino.fileType << "\n" << std::endl; 
+		DEBUG(("Rename: %s has invalid fileType %d\n", from, ino.fileType));
+		returnval = -EINVAL;
+		goto done;
+	}
+	err = Directory_ReadPath(tDirPath, &tDir);
+	if (err) {
+		DEBUG(("Rename: Error %s while reading path %s\n", strerror(err), tDirPath));
+		returnval = err;
+		goto done;
+	}
+	err = Directory_ReadPath(to, &tino); // Just check if <to> already exists
+	if (err == -ENOENT || err == ENOENT) {
+		DEBUG(("Rename: File %s doesn't exist\n", to));
+	}
+	else if (err) {
+		DEBUG(("Rename: Error %s while reading path %s\n", strerror(err), to));
+		returnval = err;
+		goto done;
+	} else if (tino.inum != ino.inum) { // <to> is a file, delete it unless is a hardlink to <from>
+		if (tino.fileType != PLAIN_FILE) {
+			DEBUG(("Rename: %s has invalid fileType %d\n", to, tino.fileType));
+			returnval = -EINVAL;
+			goto done;
+		}
+		File_Delete(&tino);
+	}
+
+	// Now rename ino
+	// TODO: Inefficient!! Unacceptable!!
+	Directory_DeleteEntry(&fDir, &ino, fName);
+	DEBUG(("Rename: DeleteEntry finished\n"));
+	if (fDir.inum == tDir.inum) { // not moving directory. fDir was updated by DeleteEntry but tDir was not.
+		Directory_AddEntry(&fDir, &ino, tName);
+	} else {
+		Directory_AddEntry(&tDir, &ino, tName);
+	}
+	returnval = 0;
+done:
+	debug_free(fDirPath);
+	debug_free(fName);
+	debug_free(tDirPath);
+	debug_free(tName);
+	return returnval;
+}
