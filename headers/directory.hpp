@@ -9,7 +9,7 @@
 
 class Directory {
 	public:
-		Directory(char* lfsFile);
+		Directory(inputState* state);
 		File file;
 
 		// Setting variables to be used for various directory layer operations
