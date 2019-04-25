@@ -37,6 +37,7 @@
 #include "json.hpp"
 #include <string>
 #include <iostream>
+#include <ctime>
 using json = nlohmann::json;
 
 static struct option long_options[] = {
@@ -71,11 +72,13 @@ void lfs_init_segmentsummary(Log *l){
         while (j < (sizeof(b)/(*l).super_block.bytesPerBlock) + 1) {
             b[j].use = static_cast<char>(usage::INUSE);
             b[j].inum = static_cast<unsigned int>(reserved_inum::NOINUM);
+            b[j].age = std::time(nullptr);
             j++;
         }
         for(; j < (*l).super_block.blocksPerSegment; j++) {
             b[j].use = static_cast<char>(usage::FREE);
             b[j].inum = static_cast<unsigned int>(reserved_inum::NOINUM);
+            b[j].age = std::time(nullptr);
         }
         unsigned int offset = i*(((*l).super_block.sectorsPerBlock)*((*l).super_block.blocksPerSegment));
         int res = Flash_Write((*l).flash, offset, (*l).super_block.sectorsPerBlock, b);
@@ -112,21 +115,21 @@ void lfs_init_checkpoint(Log *l){
 
 void lfs_init_inodemap(Log *l) {
     /* Create iFile */
-    (*l).iFile = Inode();
-    (*l).iFile.inum = static_cast<unsigned int>(reserved_inum::IFILE);
-    (*l).iFile.fileSize = 0;
-    (*l).iFile.fileType = static_cast<char>(fileTypes::IFILE);
+    Inode iFile = Inode();
+    iFile.inum = static_cast<unsigned int>(reserved_inum::IFILE);
+    iFile.fileSize = 0;
+    iFile.fileType = static_cast<char>(fileTypes::IFILE);
 
     log_address address = {0, 0};
-    (*l).iFile.block_pointers[0]= address;
-    (*l).iFile.block_pointers[1]= address;
-    (*l).iFile.block_pointers[2]= address;
-    (*l).iFile.block_pointers[3]= address;
+    iFile.block_pointers[0]= address;
+    iFile.block_pointers[1]= address;
+    iFile.block_pointers[2]= address;
+    iFile.block_pointers[3]= address;
 
 
     char buffer[sizeof(Inode)+ 1];
     memset(buffer, 0, sizeof(Inode)+ 1);
-    memcpy(buffer, &(*l).iFile, sizeof(Inode)+1);
+    memcpy(buffer, &iFile, sizeof(Inode)+1);
     std::cout << "writing iFile at offset: " << LOG_IFILE_OFFSET << std::endl;
     int res = Flash_Write((*l).flash, LOG_IFILE_OFFSET, 1, buffer);
     if (res) {
