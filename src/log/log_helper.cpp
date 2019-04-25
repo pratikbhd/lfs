@@ -21,6 +21,7 @@ bool Log::SetBlockUsage(log_address address, block_usage record){
     if(address.segmentNumber == 0)
         return false;
 
+    record.age = std::time(nullptr);
     char data[summaryBlockBytes()];
     log_address base = GetLogAddress(address.segmentNumber, 0);
     Read(base, summaryBlockBytes(), data);
