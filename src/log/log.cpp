@@ -70,7 +70,7 @@ void Log::Read(log_address address, int length, char *buffer) {
         }
         
         (*cache[cache_round_robin]).Load(address.segmentNumber);
-        if (cache_round_robin == sizeof(cache) - 1){
+        if (cache_round_robin >= (sizeof(cache) / sizeof(cache[0])) - 1){
             cache_round_robin = 0;
         } else {
             cache_round_robin++;

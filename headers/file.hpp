@@ -12,7 +12,8 @@ class File {
         inputState state;
         void updateInode(Inode in, log_address before, log_address after);
         bool mergeSegments(std::vector<unsigned int> segments);
-        bool cleanSegment();
+        bool cleanSegments(std::vector<unsigned int> segments);
+        bool selectSegments(int segmentsToFree);
         Inode getInode(int inum);
         bool clean();
 
@@ -21,8 +22,6 @@ class File {
         unsigned int max_operations = 1000;
         //Get the iFile from the flash.
         void getiFile();
-        //Get a log address object stored at the specified index in the Inode block pointers.
-        log_address getLogAddress(Inode i, int index);
         //Get next available free block at the log end.
         log_address getNewLogEnd();
         //Update the block pointer of the Inode i at the given block pointer array index to a new log address.
@@ -32,11 +31,15 @@ class File {
         bool write(Inode *in, unsigned int blockNumber, int length, const char* buffer);
         //Trigger a checkpoint to flash.
         void checkpoint();
+
     public:
     std::vector<bool> inodes_used; // This is an array of 0s and 1s that keep track of the current inodes being used in the ifile
 
     Log log;
     Inode iFile;
+
+    //Get a log address object stored at the specified index in the Inode block pointers. public because it is required by lfsck.
+    log_address GetLogAddress(Inode i, int index);
 
     File(inputState state); // Need to pass the flashfile
 
@@ -114,7 +117,7 @@ class File {
     //Flush all log layer objects from memory to the flash.
     void Flush();
 
-    int fileDelete(Inode *ino);  
+    int fileDelete(Inode *ino);
 
     /**
     * Sets every value of <ino> to null except for the inum, then writes <ino> to the log.

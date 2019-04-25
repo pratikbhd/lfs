@@ -43,11 +43,11 @@ int File::fileWrite(Inode *inode, int offset, int length, const void *buffer) {
     char data[GetMaxFileSize()];
     int writeIndex=0, writeOffset=0;
 
-    while (getLogAddress(*inode, writeIndex).segmentNumber != 0 ) { //BLOCK_NULL_ADDR) {
+    while (GetLogAddress(*inode, writeIndex).segmentNumber != 0 ) { //BLOCK_NULL_ADDR) {
         std::cout << "[File] Write offset: " << writeOffset << std::endl;
         std::cout << "[File] bytesPerBlock: " << log.super_block.bytesPerBlock << std::endl;
 
-        log.Read(getLogAddress(*inode, writeIndex), log.super_block.bytesPerBlock, data+writeOffset);
+        log.Read(GetLogAddress(*inode, writeIndex), log.super_block.bytesPerBlock, data+writeOffset);
         writeOffset+=log.super_block.bytesPerBlock;
         writeIndex++;
 	}
@@ -127,7 +127,7 @@ int File::fileRead(Inode *inode, int offset, int length, char *buffer) {
 
     // First, read the first partial block 
 	if (remainingBlockPart != 0) {
-		address = getLogAddress(*inode, index);
+		address = GetLogAddress(*inode, index);
 		log.Read(address, log.super_block.bytesPerBlock, block);
 
         // Copy to bufferPosition the contents of block after the offset, but at most length bytes
@@ -141,7 +141,7 @@ int File::fileRead(Inode *inode, int offset, int length, char *buffer) {
 	
     // Read the remaining blocks, including the last partial block
 	while (length > 0) {
-		address = getLogAddress(*inode, index);
+		address = GetLogAddress(*inode, index);
 		readCount = (length > log.super_block.bytesPerBlock-remainingBlockPart ? log.super_block.bytesPerBlock-remainingBlockPart : length); // Read a whole block or whatever remains
 		log.Read(address, readCount, block);
 		memcpy(bufferPosition, block, readCount);
@@ -521,12 +521,12 @@ int File::Truncate(Inode *inode, off_t size) {
 		// First block is not deleted, unless size == 0
 		// just set inode->fileSize = size
 		if (blockOffset == 0) {
-			log.Free(getLogAddress(*inode, bn));
+			log.Free(GetLogAddress(*inode, bn));
 			updateInode(inode, bn, log.GetLogAddress(0, 0)); //BLOCK_NULL_ADDR;
 		}
 		// Free all blocks which are completely truncated
-		for (bn++; /*i < 4 &&*/ getLogAddress(*inode, bn).segmentNumber != 0; bn++) {
-			log.Free(getLogAddress(*inode, bn));
+		for (bn++; /*i < 4 &&*/ GetLogAddress(*inode, bn).segmentNumber != 0; bn++) {
+			log.Free(GetLogAddress(*inode, bn));
 			updateInode(inode, bn, log.GetLogAddress(0, 0)); //BLOCK_NULL_ADDR;
 		}
 		fileWrite(&iFile, inode->inum * sizeof(Inode), sizeof(Inode), inode);
@@ -637,4 +637,27 @@ void File::Flush(){
     (*log.log_end).ForceFlush();
     operation_count = max_operations;
     checkpoint();
+}
+
+log_address File::GetLogAddress(Inode i, int index) {
+    log_address address = {0, 0};
+
+    if(index < 0) {
+        throw "Log::GetLogAddress() - Invalid index for block pointer. Index is negative.";
+    } else if(index < 4) {
+        if(i.block_pointers[index].segmentNumber > 0) {
+            return i.block_pointers[index];
+        }
+    } else {
+        if(i.indirect_block.segmentNumber > 0) {
+            char data[log.super_block.bytesPerBlock];
+            unsigned int offsetBytes = (index - 4) * sizeof(log_address);
+            if (offsetBytes + sizeof(log_address) > log.super_block.bytesPerBlock)
+                throw "Log::GetLogAddress() - the index specified references block pointer data that exceeds a block size. Not supported as of now.";
+
+            log.Read(i.indirect_block, log.super_block.bytesPerBlock, data);
+            memcpy(&address, (data + offsetBytes), sizeof(log_address));
+        }
+    }
+    return address;
 }
