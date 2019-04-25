@@ -42,7 +42,7 @@ void* Directory::Initialize(struct fuse_conn_info *conn) {
 		directoryInode.hardLinkCount = 1;
 		file.fileWrite(&directoryInode, 0, 0, NULL);
 		file.Flush();
-	
+
 	} else {
 		file.fileRead(&iFile, 0, iFile.fileSize, (char *)&inodeArray);
 		inodes_length = 0;
@@ -554,7 +554,7 @@ int Directory::rename(const char *from, const char *to) {
 	splitPathAtEnd(to, &tDirPath, &tName);
 
 	std::cout << "Directory Rename:\n\tFrom: " << from << "\n\tParent: " << fDirPath << "\n\tName: " << fName << "\n\tTo: " << to << "\n\tParent: " << tDirPath << "\n\tName: " << tName << "\n" << std::endl;
-	
+
 	err = file.ReadPath(fDirPath, &fDir);
 	if (err) {
 		std::cout << "Rename: Error " << strerror(err) << " while reading path " << fDirPath << "\n" << std::endl;
@@ -564,44 +564,47 @@ int Directory::rename(const char *from, const char *to) {
 
 	err = file.ReadPath(from, &ino);
 	if (err) {
-		std::cout << "Rename: Error " << strerror(err) << " while reading path " << fDirPath << "\n" << std::endl;
+		std::cout << "Rename: Error " << strerror(err) << " while reading path " << from << "\n" << std::endl;
 		returnval = err;
 		goto done;
 	}
-	
+
 	// TODO: Support all file types
 	if (ino.fileType != static_cast<char>(fileTypes::PLAIN_FILE)) {
-		std::cout << "Rename: " << from << " has invalid filetype " << ino.fileType << "\n" << std::endl; 
-		DEBUG(("Rename: %s has invalid fileType %d\n", from, ino.fileType));
+		std::cout << "Rename: " << from << " has invalid filetype " << ino.fileType << "\n" << std::endl;
 		returnval = -EINVAL;
 		goto done;
 	}
-	err = Directory_ReadPath(tDirPath, &tDir);
+
+	err = file.ReadPath(tDirPath, &tDir);
 	if (err) {
-		DEBUG(("Rename: Error %s while reading path %s\n", strerror(err), tDirPath));
+		std::cout << "Rename: Error " << strerror(err) << " while reading path " << tDirPath << "\n" << std::endl;
 		returnval = err;
 		goto done;
 	}
-	err = Directory_ReadPath(to, &tino); // Just check if <to> already exists
+
+	err = file.ReadPath(to, &tino); // Just check if <to> already exists
 	if (err == -ENOENT || err == ENOENT) {
-		DEBUG(("Rename: File %s doesn't exist\n", to));
+		std::cout << "Rename: File " << to << "does not exist.\n" << std::endl;
 	}
 	else if (err) {
-		DEBUG(("Rename: Error %s while reading path %s\n", strerror(err), to));
+		std::cout << "Rename: Error " << strerror(err) << " while reading path " << to << "\n" << std::endl;
 		returnval = err;
 		goto done;
 	} else if (tino.inum != ino.inum) { // <to> is a file, delete it unless is a hardlink to <from>
-		if (tino.fileType != PLAIN_FILE) {
-			DEBUG(("Rename: %s has invalid fileType %d\n", to, tino.fileType));
+		if (tino.fileType != static_cast<char>(fileTypes::PLAIN_FILE)) {
+			std::cout << "Rename: " << to << " has invalid fileType " << tino.fileType << "\n" << std::endl;
 			returnval = -EINVAL;
 			goto done;
 		}
-		File_Delete(&tino);
+		file.fileDelete(&tino);
 	}
 
 	// Now rename ino
 	// TODO: Inefficient!! Unacceptable!!
-	Directory_DeleteEntry(&fDir, &ino, fName);
+	deleteEntry(&fDir, &ino, fName);
+
+	std::cout << "Rename: DeleteEntry finished.\n" << std::endl;
 	DEBUG(("Rename: DeleteEntry finished\n"));
 	if (fDir.inum == tDir.inum) { // not moving directory. fDir was updated by DeleteEntry but tDir was not.
 		Directory_AddEntry(&fDir, &ino, tName);
@@ -610,9 +613,5 @@ int Directory::rename(const char *from, const char *to) {
 	}
 	returnval = 0;
 done:
-	debug_free(fDirPath);
-	debug_free(fName);
-	debug_free(tDirPath);
-	debug_free(tName);
 	return returnval;
 }

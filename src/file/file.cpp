@@ -35,7 +35,7 @@ int File::fileWrite(Inode *inode, int offset, int length, const void *buffer) {
 		std::cout << "[File] fileWrite: offset: " << offset << " length: " << length << " greater than max size: " << GetMaxFileSize() << std::endl;
         return -1;
     }
-    
+
     // Read whole file
     std::cout << "[File] Maximum Size: " << log.super_block.bytesPerBlock*4 << std::endl;
     std::cout << "[File] size: " << GetMaxFileSize() << std::endl;
@@ -51,11 +51,11 @@ int File::fileWrite(Inode *inode, int offset, int length, const void *buffer) {
         writeOffset+=log.super_block.bytesPerBlock;
         writeIndex++;
 	}
-    
+
    	if (offset > inode->fileSize) { // Fill holes
 		memset(data+inode->fileSize, 0, offset - inode->fileSize);
-	}	
-    
+	}
+
     // write
     std::cout << "[File] Data:" << data << std::endl;
     std::cout << "[File] Data+offset:" << data+offset << std::endl;

@@ -114,5 +114,5 @@ class Directory {
  		* Renames the entry <from> with the name <to>
  		*/
 		int rename(const char *from, const char *to);
-	
+
 };
