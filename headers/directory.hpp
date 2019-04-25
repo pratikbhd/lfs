@@ -41,7 +41,7 @@ class Directory {
 		 */
 		int makeDirectory(const char *path, mode_t mode);
 
-		int directoryReaddir(const char *path, void *buf, fuse_fill_dir_t filler, 
+		int directoryReaddir(const char *path, void *buf, fuse_fill_dir_t filler,
 			off_t offset, struct fuse_file_info *fi);
 
 		int innerReadDir(char *, int *, char *, int *);
