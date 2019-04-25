@@ -29,12 +29,11 @@ void File::updateInode(Inode in, log_address before, log_address after) {
 }
 
 
-bool File::mergeSegments(int *segments)
-{
+bool File::mergeSegments(std::vector<unsigned int> segments) {
     std::cout << "CLEANER: Merging free Segments" << std::endl;
     
-    int i  = 1, j  = log.SummaryBlockSize();
-    int iw = 0, jw = log.SummaryBlockSize();;
+    unsigned int j  = log.SummaryBlockSize();
+    unsigned int iw = 0, jw = log.SummaryBlockSize();;
     block_usage br     = block_usage();
     block_usage move   = block_usage();
     char move_buf[log.super_block.bytesPerBlock];
@@ -43,17 +42,17 @@ bool File::mergeSegments(int *segments)
     log_address addrw;
    
     /* Iterate over all of the segments passed to the function */
-    while (*(segments + i) != 0) {
+    for(unsigned int i = 0; i< segments.size(); i++) {
         while (j < log.super_block.blocksPerSegment) {
-            addrw = log.GetLogAddress(*(segments + i), j);
+            addrw = log.GetLogAddress(segments[i], j);
             
-            std::cout << "CLEANER: Merge Segments LOOP (i,j) = " <<i << ","<< j << std::endl;
+            std::cout << "CLEANER: Merge Segments LOOP (i,j) = " <<segments[i] << ","<< j << std::endl;
 
             /* Find next free slot */
             if (!found_free_slot) {
-                while (*(segments + iw) != 0) {
+                while (iw < segments.size()) {
                     while (jw < log.super_block.blocksPerSegment) {
-                        addrw = log.GetLogAddress(*(segments + iw), jw);
+                        addrw = log.GetLogAddress(segments[iw], jw);
                         br = log.GetBlockUsage(addrw);
                         if (br.use == static_cast<char>(usage::FREE)) {
                             found_free_slot = true;
@@ -103,37 +102,25 @@ bool File::mergeSegments(int *segments)
 bool File::cleanSegment() {
     std::cout << "CleanBlocks BEGIN" << std::endl;
     int total = 0;
-    //TODO switch from calloc to some other alternative
-    int *freeBlocks = (int*)calloc(sizeof(int), log.super_block.sectorCount+2);
-    int j = 1, i = 0;
-    
-    for (; i <= log.super_block.segmentCount; i++) {
+    std::vector<unsigned int> freeBlocks;
+    for (int i = 0; i <= log.super_block.segmentCount; i++) {
         int local_total = log.GetFreeBlockCount(i);
             
         /* Note too full, can merge */
         if ( local_total > 0 ) {
             total += local_total;
-            *(freeBlocks+j) = i;
-            j++;
+            freeBlocks.push_back(i);
         }
 
         std::cout << "FREE COUNT TOTAL: " << total << std::endl;
 
         /* Check if we have found enough free blocks to do merging */
         if (total > log.super_block.blocksPerSegment && i > 1) {
-            *(freeBlocks+j) = 0;
             break;
         }
     }
-    
-    std::cout << "CLEANER NUMBER TO MERGE: " << i << std::endl;
-
     mergeSegments(freeBlocks);
-    
     std::cout << "CleanBlocks END" << std::endl;
-
-    free(freeBlocks);
-
     return true;
 }
 
