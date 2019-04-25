@@ -12,7 +12,8 @@ class File {
         inputState state;
         void updateInode(Inode in, log_address before, log_address after);
         bool mergeSegments(std::vector<unsigned int> segments);
-        bool cleanSegment();
+        bool cleanSegments(std::vector<unsigned int> segments);
+        bool selectSegments(int segmentsToFree);
         Inode getInode(int inum);
         bool clean();
 
