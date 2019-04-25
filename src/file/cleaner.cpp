@@ -1,9 +1,11 @@
 #include <iostream>
+#include <algorithm>
 #include "file.hpp"
+#include "cost_benefit.hpp"
 
 Inode File::getInode(int inum){
     int blocknum = (inum)/((log.super_block.bytesPerBlock)/(sizeof(Inode)));
-    log_address addr = getLogAddress(iFile, blocknum);
+    log_address addr = GetLogAddress(iFile, blocknum);
 
     char buf[log.super_block.bytesPerBlock];
     log.Read(addr, log.super_block.bytesPerBlock, buf);
@@ -17,8 +19,8 @@ Inode File::getInode(int inum){
 
 void File::updateInode(Inode in, log_address before, log_address after) {
     int wi = 0;
-    while (getLogAddress(in, wi).segmentNumber != 0 ) {
-        log_address address = getLogAddress(in, wi);
+    while (GetLogAddress(in, wi).segmentNumber != 0 ) {
+        log_address address = GetLogAddress(in, wi);
         if(address.segmentNumber == before.segmentNumber &&
            address.blockOffset   == before.blockOffset ) {
             updateInode(&in, wi, after);
@@ -100,7 +102,7 @@ bool File::mergeSegments(std::vector<unsigned int> segments) {
 
 
 bool File::cleanSegment() {
-    std::cout << "CleanBlocks BEGIN" << std::endl;
+    std::cout << "cleanSegment() BEGIN" << std::endl;
     int total = 0;
     std::vector<unsigned int> freeBlocks;
     for (int i = 0; i <= log.super_block.segmentCount; i++) {
@@ -120,7 +122,7 @@ bool File::cleanSegment() {
         }
     }
     mergeSegments(freeBlocks);
-    std::cout << "CleanBlocks END" << std::endl;
+    std::cout << "cleanSegment() END" << std::endl;
     return true;
 }
 
@@ -140,6 +142,31 @@ bool File::clean() {
     if(state.startCleaner >= (log.super_block.segmentCount - log.super_block.usedSegments)) {
         int segmentsToFree = state.stopCleaner - state.startCleaner;
         std::cout << "CLEANER will clean: " << segmentsToFree << std::endl;
+        CostBenefit ratios[log.super_block.segmentCount];
+        //ignore segment zero.
+        for (int i = 1; i <= log.super_block.segmentCount; i++) {
+            int local_total = log.GetFreeBlockCount(i);
+            struct tm y2k = {0};
+            double seconds;
+            y2k.tm_hour = 0;   y2k.tm_min = 0; y2k.tm_sec = 0;
+            y2k.tm_year = 115; y2k.tm_mon = 0; y2k.tm_mday = 1;
+            time_t newest = mktime(&y2k);
+            for (int j = log.SummaryBlockSize(); j < log.super_block.blocksPerSegment; j++) {
+                        log_address block = log.GetLogAddress(i, j);
+                        block_usage br = log.GetBlockUsage(block);
+                        if (difftime(br.age, newest) > 0) newest = br.age;
+            }
+            ratios[i] = CostBenefit();
+            ratios[i].segmentNumber = i;
+            ratios[i].score = difftime(newest,mktime(&y2k));
+
+            //(1 -u)*age / (1 + u)
+        }
+
+        std::sort(ratios, ratios + (log.super_block.segmentCount-1),
+          [](CostBenefit const & a, CostBenefit const & b) -> bool
+          { return a.score < b.score; } );
+
         while(segmentsToFree > 0) {
             bool didClean = cleanSegment();
             if(!didClean) {
@@ -153,6 +180,6 @@ bool File::clean() {
         std :: cout << "clean(): cleaner does not have to run yet." << std::endl;
     }
 
-    //TODO checkpoint?
+    checkpoint();
     return rv;
 }

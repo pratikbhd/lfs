@@ -21,8 +21,6 @@ class File {
         unsigned int max_operations = 1000;
         //Get the iFile from the flash.
         void getiFile();
-        //Get a log address object stored at the specified index in the Inode block pointers.
-        log_address getLogAddress(Inode i, int index);
         //Get next available free block at the log end.
         log_address getNewLogEnd();
         //Update the block pointer of the Inode i at the given block pointer array index to a new log address.
@@ -37,6 +35,9 @@ class File {
 
         Log log;
         Inode iFile;
+
+        //Get a log address object stored at the specified index in the Inode block pointers. public because it is required by lfsck.
+        log_address GetLogAddress(Inode i, int index);
 
         File(inputState state); // Need to pass the flashfile
 

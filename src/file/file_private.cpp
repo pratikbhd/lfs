@@ -11,29 +11,6 @@ void File::getiFile() {
     std::memcpy(&iFile, buffer, sizeof(Inode));
 }
 
-log_address File::getLogAddress(Inode i, int index) {
-    log_address address = {0, 0};
-
-    if(index < 0) {
-        throw "Log::GetLogAddress() - Invalid index for block pointer. Index is negative.";
-    } else if(index < 4) {
-        if(i.block_pointers[index].segmentNumber > 0) {
-            return i.block_pointers[index];
-        }
-    } else {
-        if(i.indirect_block.segmentNumber > 0) {
-            char data[log.super_block.bytesPerBlock];
-            unsigned int offsetBytes = (index - 4) * sizeof(log_address);
-            if (offsetBytes + sizeof(log_address) > log.super_block.bytesPerBlock)
-                throw "Log::GetLogAddress() - the index specified references block pointer data that exceeds a block size. Not supported as of now.";
-
-            log.Read(i.indirect_block, log.super_block.bytesPerBlock, data);
-            memcpy(&address, (data + offsetBytes), sizeof(log_address));
-        }
-    }
-    return address;
-}
-
 log_address File::getNewLogEnd(){
     block_usage b = {0,static_cast<char>(usage::INUSE)};
     log_address finder = log.Log_end_address;
@@ -124,8 +101,8 @@ bool File::write(Inode *target, unsigned int blockNumber, int length, const char
   
         // get old block pointer data
         char oldData[log.super_block.bytesPerBlock];
-        if(getLogAddress(*update, blockNumber).segmentNumber != 0) {
-            log_address lax = getLogAddress(*update, blockNumber);
+        if(GetLogAddress(*update, blockNumber).segmentNumber != 0) {
+            log_address lax = GetLogAddress(*update, blockNumber);
             log.Read(lax, log.super_block.bytesPerBlock, oldData);
         }
         
@@ -139,7 +116,7 @@ bool File::write(Inode *target, unsigned int blockNumber, int length, const char
         updateInode(update, blockNumber, address);
         std::cout << "[Log] Write Block (input address params)==> blocknum: " << blockNumber << " sn: " << address.segmentNumber << " blk_offset: " << address.blockOffset;
         
-        log_address verify = getLogAddress(*update, blockNumber);
+        log_address verify = GetLogAddress(*update, blockNumber);
         std::cout << "[Log] Write Block (updated address params)==> blocknum: " << blockNumber << " sn: " << verify.segmentNumber << " blk_offset: " << verify.blockOffset;
 
         // one block written successfully.
@@ -198,12 +175,12 @@ bool File::write(Inode *target, unsigned int blockNumber, int length, const char
             std::cout << "[Log] Write iFile split_point: " << split_point << " BLOCKNUM: " << iFile_block_number << " offset: " << offset << " bytes_done: "<< bytes_done << std::endl;
 
             bool new_ifile_block = false;
-            if(getLogAddress(iFile, iFile_block_number).segmentNumber == 0) {
+            if(GetLogAddress(iFile, iFile_block_number).segmentNumber == 0) {
                 updateInode(&iFile, iFile_block_number, getNewLogEnd());
                 new_ifile_block = true;
             }
 
-            log_address address = getLogAddress(iFile, iFile_block_number);
+            log_address address = GetLogAddress(iFile, iFile_block_number);
             //Read one block of the iFile.
             log.Read(address, log.super_block.bytesPerBlock, buffer);
             //update the block at the location with the inode, considering split point, if the inode was split.

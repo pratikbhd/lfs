@@ -1,13 +1,12 @@
 #include <iostream>
 #include <fstream>
 #include "segment.h"
-#include "log.h"
+#include "file.hpp"
 #include "json.hpp"
 #include "flash.h"
 using json = nlohmann::json;
 
 json GetSuperBlock(Log *l){
-    (*l).GetSuperBlock();
     json json_sb = (*l).super_block;
     return json_sb;
 }
@@ -37,16 +36,15 @@ json GetCheckpoints(Log *l){
     return json_cp;
 }
 
-json GetiFile(Log *l){
-    (*l).GetiFile();
-    json json_i = (*l).iFile;
+json GetiFile(File *f){
+    json json_i = (*f).iFile;
     return json_i;
 }
 
-json GetIndirectBlocks(Log *l, Inode in){
+json GetIndirectBlocks(File *f, Inode in){
     json indirect;
-    for(int i= 4; i < (*l).super_block.blocksPerSegment; i++) {
-        log_address la = (*l).GetLogAddress(in, i);
+    for(int i= 4; i < (*f).log.super_block.blocksPerSegment; i++) {
+        log_address la = (*f).GetLogAddress(in, i);
         indirect.push_back(json{{"block", i}, 
         {"segmentNumber", la.segmentNumber},
         {"blockOffset", la.blockOffset}
@@ -63,35 +61,30 @@ int main (int argc, char **argv)
     }
         
     json status;
+    inputState state = inputState();
+    state.lfsFile = argv[1];
     if(strcmp(argv[2], "log")==0){
-        Log log = Log();
-        unsigned int blocks;
-        log.flash = Flash_Open(argv[1], 0, &blocks);
-        status["superblock"] = GetSuperBlock(&log);
-        log.InitializeCache();
-        status["segment_summary_block"] = GetSegmentSummaryBlocks(&log);
-        status["checkpoints"] = GetCheckpoints(&log);
-        status["iFile"] = GetiFile(&log);
-        Flash_Close(log.flash);
+        File file = File(state);
+        status["superblock"] = GetSuperBlock(&file.log);
+        status["segment_summary_block"] = GetSegmentSummaryBlocks(&file.log);
+        status["checkpoints"] = GetCheckpoints(&file.log);
+        status["iFile"] = GetiFile(&file);
     } else if(strcmp(argv[2], "file")==0){
-        Log log = Log();
-        unsigned int blocks;
-        log.flash = Flash_Open(argv[1], 0, &blocks);
-        status["superblock"] = GetSuperBlock(&log);
-        log.InitializeCache();
-        status["checkpoints"] = GetCheckpoints(&log);
-        status["iFile"] = json{{"inode", GetiFile(&log)}, {"blk",GetIndirectBlocks(&log, log.iFile)}};
+        File file = File(state);
+        status["superblock"] = GetSuperBlock(&file.log);
+        status["checkpoints"] = GetCheckpoints(&file.log);
+        status["iFile"] = json{{"inode", GetiFile(&file)}, {"blk",GetIndirectBlocks(&file, file.iFile)}};
 
         int i = 0;
         json inodeJsons;
-        while(log.GetLogAddress(log.iFile, i).segmentNumber != 0) {
-            Inode buffer[log.super_block.bytesPerBlock];
-            log_address la = log.GetLogAddress(log.iFile, i);
-            log.Read(la, log.super_block.bytesPerBlock, (char *)buffer);
+        while(file.GetLogAddress(file.iFile, i).segmentNumber != 0) {
+            Inode buffer[file.log.super_block.bytesPerBlock];
+            log_address la = file.GetLogAddress(file.iFile, i);
+            file.log.Read(la, file.log.super_block.bytesPerBlock, (char *)buffer);
             int j = 0;
-            for(; (j * sizeof(Inode)) < log.super_block.bytesPerBlock; j++) {
+            for(; (j * sizeof(Inode)) < file.log.super_block.bytesPerBlock; j++) {
                 Inode in = buffer[j];
-                inodeJsons.push_back(json{{"inode", in}, {"blk",GetIndirectBlocks(&log, in)}});
+                inodeJsons.push_back(json{{"inode", in}, {"blk",GetIndirectBlocks(&file, in)}});
             }
             i++;
         }
