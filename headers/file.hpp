@@ -8,6 +8,15 @@
 
 class File {
     private:
+        //cleaner functions
+        inputState state;
+        void updateInode(Inode in, log_address before, log_address after);
+        bool mergeSegments(std::vector<unsigned int> segments);
+        bool cleanSegment();
+        Inode getInode(int inum);
+        bool clean();
+
+        // file layer private functions
         unsigned int operation_count;
         unsigned int max_operations = 1000;
         //Get the iFile from the flash.
@@ -29,7 +38,7 @@ class File {
     Log log;
     Inode iFile;
 
-    File(char* lfsFile); // Need to pass the flashfile
+    File(inputState state); // Need to pass the flashfile
 
     ~File(); //Force Flush the log layer to flash and close flash.
 
@@ -117,4 +126,3 @@ class File {
     */
     int writeInode(Inode *);
 };
-

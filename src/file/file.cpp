@@ -13,10 +13,11 @@
 
 char convertMode(mode_t mode);
 
-File::File(char* lfsFile) {
+File::File(inputState state) {
+	state = state;
     log = Log();
     unsigned int blocks;
-    log.flash = Flash_Open(lfsFile, 0, &blocks); // TODO: Get the filename in state->lfsfile (char* format)
+    log.flash = Flash_Open(state.lfsFile, 0, &blocks); // TODO: Get the filename in state->lfsfile (char* format)
     log.GetSuperBlock();
     log.InitializeCache();
     log.cp1 = log.GetCheckpoint(LOG_CP1_OFFSET);

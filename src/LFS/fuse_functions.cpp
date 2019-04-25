@@ -23,7 +23,7 @@ Directory *directory;
 
 void* c_Initialize(struct fuse_conn_info *conn) {
     std::cout <<"[LFS] c_Initialize called: implemented";
-    directory = new Directory(((inputState*)fuse_get_context()->private_data)->lfsFile);
+    directory = new Directory(((inputState*)fuse_get_context()->private_data));
     return directory->Initialize(conn);
 }
 

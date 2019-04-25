@@ -10,7 +10,8 @@
 #include "log.h"
 #include "lfs_enums.h"
 
-Directory::Directory(char* lfsFile): file(File(lfsFile)) {
+
+Directory::Directory(inputState* state): file(File(*state)) {
 
 }
 
