@@ -104,4 +104,17 @@ class File {
 
     //Flush all log layer objects from memory to the flash.
     void Flush();
+
+    int fileDelete(Inode *ino);  
+
+    /**
+    * Sets every value of <ino> to null except for the inum, then writes <ino> to the log.
+    */
+    int resetInode(Inode *ino);
+
+    /**
+    * Writes the inode argument to the ifile. Returns 0 always.
+    */
+    int writeInode(Inode *);
 };
+

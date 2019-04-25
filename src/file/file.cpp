@@ -242,6 +242,7 @@ int File::fileCreate(const char *path, mode_t mode, struct fuse_file_info *fi) {
  		std::cout << "[File] FileCreate: Mode = " << mode << std::endl;
 		std::cout << "[File] FileCreate: inum = " << inode.inum << std::endl;
 
+		inode.hardLinkCount = 1;
 		length = strlen(path);
 		error = ReadPath(parent, &directory);
 
@@ -585,6 +586,49 @@ int File::fileGetattr(const char *path, struct stat *stbuf) {
 	stbuf->st_mode |= S_IRWXO;
 
 	std::cout << "[File] Leaving getAttr" << std::endl;
+	return 0;
+}
+
+
+int File::fileDelete(Inode *ino) {
+	int err = Truncate(ino, 0);
+
+	if (err) {
+		std::cout << "fileDelete: Error " << strerror(err) << " truncating file with inum " << ino->inum << "\n" << std::endl;
+		return err;
+	}
+
+	ToggleInumUsage(ino->inum);
+	resetInode(ino);
+
+	return 0;
+}
+
+// TODO: Consult about this with Rahul
+int File::resetInode(Inode *inode) {
+
+	std::cout << "resetInode\n" << std::endl;
+	int i;
+	inode->fileSize = 0;
+
+	for (i = 0; i < 4; i++) {
+		inode->block_pointers[i].segmentNumber = 0;
+		inode->block_pointers[i].blockOffset = 0;
+	}
+    inode->indirect_block.segmentNumber = 0;
+    inode->indirect_block.blockOffset = 0;
+
+	inode->hardLinkCount = 0;
+	inode->fileType = static_cast<char>(fileTypes::NO_FILE);
+	writeInode(inode);
+
+	return 0;
+}
+
+int File::writeInode(Inode *inode) {
+
+	std::cout << "writeInode, size = " << inode->fileSize << "\n" << std::endl;	
+	fileWrite(&iFile, inode->inum * sizeof(Inode), sizeof(Inode), inode);
 	return 0;
 }
 

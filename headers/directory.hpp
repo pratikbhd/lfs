@@ -44,6 +44,11 @@ class Directory {
 		int directoryReaddir(const char *path, void *buf, fuse_fill_dir_t filler,
 			off_t offset, struct fuse_file_info *fi);
 
+		/**
+ 		* Finds the first item found in the directory. inum will point to the inode number, name to the
+		* file name, and newOffset to the point in directory where the next entry begins. name should be
+ 		* buffer of size at least NAME_MAX_LENGTH+1.
+ 		*/
 		int innerReadDir(char *, int *, char *, int *);
 
 		int CountInodes();
@@ -78,7 +83,7 @@ class Directory {
  		* Removes <*name> from its directory, and decrements the hardlink count of the files inode. If the count is 0, then
  		* the file is deleted from the log using File_Delete.
  		*/
-		int Directory_Unlink(const char *name);
+		int unlink(const char *name);
 
 		/**
  		* Copies all of <path> except for the last link into a fresh buffer pointed to by <*parentPath> with terminating null byte.
@@ -86,6 +91,22 @@ class Directory {
  		* and should be freed by the caller. The length of parentPath is returned upon success. Otherwise, a negative number indicates
  		* an error
  		*/
-		int Directory_SplitPathAtEnd(const char *path, char **parentPath, char **child);
+		int splitPathAtEnd(const char *path, char **parentPath, char **child);
 
+		/**
+		* Delete functions
+		*/
+
+		/**
+		* Removes the directory <path>. If this directory is not empty, removeDirectory fails and returns -ENOTEMPTY.
+   		* If it is not a directory, removeDirectory fails and returns -ENOTDIR. Otherwise, the directory is deleted
+		* and 0 is returned.
+		*/
+		int removeDirectory(const char * path);
+
+		/**
+ 		* Removes the file named <name> associated with <ino> from the directory <dir>.
+ 		* The inodes are updated in the log.
+ 		*/
+		int deleteEntry(Inode *dir, Inode *ino, const char *name);
 };

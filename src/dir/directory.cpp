@@ -38,6 +38,7 @@ void* Directory::Initialize(struct fuse_conn_info *conn) {
 		directoryInode.inum = static_cast<char>(reserved_inum::ROOT);
 		directoryInode.fileType = static_cast<char>(fileTypes::DIRECTORY);
 		directoryInode.fileSize = 0;
+		directoryInode.hardLinkCount = 1;
 		file.fileWrite(&directoryInode, 0, 0, NULL);
 		file.Flush();
 	
@@ -297,8 +298,7 @@ int Directory::createHardLink(const char *to, const char *from) {
 	}
 	ino.hardLinkCount++;
 
-	// TODO : Is this function present??
-	writeInode(&ino);
+	file.writeInode(&ino);
 	return err;
 }
 
@@ -308,12 +308,12 @@ int Directory::createHardLink(const char *to, const char *from) {
  * If <sym> exists, <file> does not exist, or some other error occurs
  * an error code is returned.
  */
-int Directory::createSymLink(const char *file, const char *sym) {
+int Directory::createSymLink(const char *to, const char *sym) {
 
 	// TODO: Fix. Hypothesis: I should not evaluate the path <file>, just dump it in a new file
 	int err;
 	Inode ino;
-	std::cout << "SymLink: Making link " << sym << "to " << file << "\n" << std::endl;
+	std::cout << "SymLink: Making link " << sym << "to " << to << "\n" << std::endl;
 	err = file.ReadPath(sym, &ino);
 	if (!err) {
 		std::cout << "SymLink: sym" << sym << "already exists\n" << std::endl;
@@ -333,9 +333,9 @@ int Directory::createSymLink(const char *file, const char *sym) {
 		return err;
 	}
 
-	int length = strlen(file) + 1;
+	int length = strlen(to) + 1;
 	std::cout << "SymLink: Writing link\n" << std::endl;
-	file.fileWrite(&ino, 0, length, file);
+	file.fileWrite(&ino, 0, length, to);
 	return 0;
 }
 
@@ -355,7 +355,7 @@ int Directory::readLink(const char *path, char *buf, size_t bufsize) {
 		return err;
 	}
 
-	if (ino.fileType != SYM_LINK) {
+	if (ino.fileType != static_cast<char>(fileTypes::SYM_LINK)) {
 		std::cout << "ReadLink: " << path << " not a sym link\n" << std::endl;
 		return -EINVAL;
 	}
@@ -366,6 +366,178 @@ int Directory::readLink(const char *path, char *buf, size_t bufsize) {
 	size_t min = (bufsize < ino.fileSize ? bufsize : ino.fileSize);
 	memcpy(buf, contents, min);
 
-	std::cout << "ReadLink: Returning count " << min << "\n" << std:endl;
+	std::cout << "ReadLink: Returning count " << min << "\n" << std::endl;
 	return 0;
+}
+
+int Directory::splitPathAtEnd(const char *path, char **prefix, char **child) {
+	int length = strlen(path);
+	int i, j;
+
+	// i starts at 2nd to last character, to skip terminating '/' character if present
+	for (i = length - 2; i >= 0 && path[i] != '/'; i--);
+
+	if (i < 0) {
+		std::cout << "splitPathAtEnd: path " << path << " does not begin with '/'\n" << std::endl;
+	}
+
+	char prefixTmp[i+1], childTmp[static_cast<unsigned int>(fileLength::LENGTH)];
+	memcpy(*prefix, prefixTmp, i+1);
+	memcpy(*child, childTmp, static_cast<unsigned int>(fileLength::LENGTH));
+	
+	for (j = 0; j < i; j++) {
+		(*prefix)[j] = path[j];
+	} 
+
+	(*prefix)[j] = '\0';
+	
+	// If the prefix is the root
+	if (i == 0) {
+		(*prefix)[0] = '/';
+		(*prefix)[1] = '\0';
+	}
+
+	// Get rid of terminating '/'
+	if (path[length-1] == '/')
+		length--;
+
+	for (i = 0, j++; j < length && i < static_cast<unsigned int>(fileLength::LENGTH); j++, i++) {
+		(*child)[i] = path[j];
+	} 
+	
+	(*child)[i] = '\0';
+	
+	std::cout << "splitPathAtEnd: path " << path << " parent " << *prefix << " child " << *child << "\n" << std::endl;
+	return j;
+}
+
+int Directory::removeDirectory(const char *path) {
+
+	Inode dir, parDir;
+	char *parent, *name;
+
+	// Should not be able to remove the root directory
+	if (strcmp(path, "/") == 0) {
+		std::cout << "removeDirectory: Tried to remove root directory\n" << std::endl;
+		return -EACCES;
+	}
+
+	int err = file.ReadPath(path, &dir);
+	if (err) {
+		std::cout << "removeDirectory: Error " << strerror(err) << " reading path " << path << "\n" << std::endl;
+		return err;
+	}
+
+	if (dir.fileType != static_cast<char>(fileTypes::DIRECTORY)) {
+		std::cout << "removeDirectory: " << path << " has filetype " << dir.fileType << "\n" << std::endl;
+		return -ENOTDIR;
+	}
+
+	if (dir.fileSize > 0) {
+		std::cout << "removeDirectory: Directory " << path << " has size " << dir.fileSize << " > 0\n" << std::endl;
+		return -ENOTEMPTY;
+	}
+
+	splitPathAtEnd(path, &parent, &name);
+
+	err = file.ReadPath(parent, &parDir);
+
+	if (err) {
+		std::cout << "Rmdir: Error " << strerror(err) << " reading parent path " << parent << "\n" << std::endl;
+		return err;
+
+	}
+	
+	deleteEntry(&parDir, &dir, name);
+
+	file.fileDelete(&dir);
+	return 0;
+}
+
+int Directory::deleteEntry(Inode *dir, Inode *ino, const char *name) {
+
+	std::cout << "deleteEntry: " << name << "\n" << std::endl;
+
+	off_t offset;
+	int inum, nRead;
+	char dbuf[dir->fileSize], tname[static_cast<unsigned int>(fileLength::LENGTH) + 1];
+
+	file.fileRead(dir, 0, dir->fileSize, dbuf);
+	
+	// Debugging code
+	// nRead = 0;
+	// while (nRead < dir->fileSize) {
+	// 	printf("inum = %d. Name = %s\n", (int) dbuf[nRead], dbuf + nRead+sizeof(int));
+	// 	nRead += sizeof(int) + strlen(dbuf+nRead+sizeof(int)) + 1;
+	// }
+
+	tname[0] = '\0';
+	offset = 0;
+
+	// while tname is before name
+	while (strcmp(tname, name) < 0 && offset < dir->fileSize) {
+		innerReadDir(dbuf + offset, &inum, tname, &nRead);
+		offset += nRead;
+
+		std::cout << "deleteEntry: Read name " << tname << " Inum "<< inum << std::endl;
+		std::cout << "Offeset = " << offset << ", fileSize =  " << dir->fileSize << "\n" << std::endl;
+	}
+
+	if (strcmp(tname, name) != 0) {
+		std::cout << "deleteEntry: File " << name << " not found in parent.\n" << std::endl;
+		return -ENOENT;
+	}
+
+	// Write modified directory
+	char newBuf[dir->fileSize - offset];
+	int length = dir->fileSize;
+	memcpy(newBuf, dbuf + offset, dir->fileSize - offset);
+	file.fileWrite(dir, offset - nRead, dir->fileSize - offset, newBuf);
+	file.Truncate(dir, length - nRead);
+
+	// Decrement link count
+	ino->hardLinkCount--;
+
+	return 0;
+}
+
+/**
+ * Removes the directory entry specified by path. Currently, this deletes the file. In phase 2, 
+ * the file will only be deleted if <path> was the last hard link to it.
+ */
+int Directory::unlink(const char *path) {
+	Inode inode, dir;
+
+	char *name, *prefix;
+
+	splitPathAtEnd(path, &prefix, &name);
+  
+	int err = file.ReadPath(path, &inode);
+
+	std::cout << "Unlink: Path " << path << "\n\tParent " << prefix << "\n\tName " << name << "\n" << std::endl;
+
+	if (err) {
+		std::cout << "Unlink: Error " << strerror(err) << " reading path " << path << "\n" << std::endl;	
+		return err;
+	}
+
+	err = file.ReadPath(prefix, &dir);
+	if (err) {
+		std::cout << "Unlink: Error " << strerror(err) << " reading path " << prefix << "\n" << std::endl;
+		return err;
+	}
+
+  // remove inode from directory
+  err = deleteEntry(&dir, &inode, name);
+	if (err) {
+		std::cout << "Unlink: Error " << strerror(err) << " in deleteEntry " << path << "\n" << std::endl;
+		return err;
+	}
+
+  // Free inode if no links. TODO: Change for phase 2.
+	if (inode.hardLinkCount < 1) {
+		err = file.fileDelete(&inode);
+	}
+
+  return err;
 }
