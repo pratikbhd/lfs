@@ -31,7 +31,7 @@ void File::updateInode(Inode in, log_address before, log_address after) {
 }
 
 bool File::cleanSegments(std::vector<unsigned int> segments) {
-    std::cout << "cleanSegments() BEGIN" << std::endl;
+    std::cout << "[CLEANER] cleanSegments() BEGIN" << std::endl;
     /* Iterate over all of the segments passed to the function */
     for(unsigned int i = 0; i< segments.size(); i++) {
         for (unsigned int j = log.SummaryBlockSize(); j < log.super_block.blocksPerSegment; j++) {
@@ -65,11 +65,11 @@ bool File::selectSegments(int segmentsToFree){
             double seconds;
             y2k.tm_hour = 0;   y2k.tm_min = 0; y2k.tm_sec = 0;
             y2k.tm_year = 115; y2k.tm_mon = 0; y2k.tm_mday = 1;
-            time_t newest = mktime(&y2k);
+            std::time_t newest = std::mktime(&y2k);
             for (int j = log.SummaryBlockSize(); j < log.super_block.blocksPerSegment; j++) {
                         log_address block = log.GetLogAddress(i, j);
                         block_usage br = log.GetBlockUsage(block);
-                        if (difftime(br.age, newest) > 0) newest = br.age;
+                        if (std::difftime(br.age, newest) > 0) newest = br.age;
             }
             ratios[i-1] = CostBenefit();
             ratios[i-1].segmentNumber = i;
@@ -91,19 +91,19 @@ bool File::selectSegments(int segmentsToFree){
  * Perform the clean operation.
  */
 bool File::clean() {	
-    std::cout << "CLEANER_CLEAN BEGIN" <<std::endl;
-    std::cout <<"CLEANER USED SEGS: " << log.super_block.usedSegments << std::endl;
-    std::cout <<"CLEANER TOTAL SEGS: " << log.super_block.segmentCount << std::endl;
-    std::cout <<"CLEANER START: " << state.startCleaner << std::endl;
-    std::cout <<"CLEANER STOP: "<< state.stopCleaner << std::endl;
+    std::cout << "[CLEANER] CLEANER_CLEAN BEGIN" <<std::endl;
+    std::cout <<"[CLEANER] CLEANER USED SEGS: " << log.super_block.usedSegments << std::endl;
+    std::cout <<"[CLEANER] CLEANER TOTAL SEGS: " << log.super_block.segmentCount << std::endl;
+    std::cout <<"[CLEANER] CLEANER START: " << state.startCleaner << std::endl;
+    std::cout <<"[CLEANER] CLEANER STOP: "<< state.stopCleaner << std::endl;
     bool rv = true;
     if(state.startCleaner >= (log.super_block.segmentCount - log.super_block.usedSegments)) {
         int segmentsToFree = state.stopCleaner - state.startCleaner;
-        std::cout << "CLEANER will clean: " << segmentsToFree << std::endl;
+        std::cout << "[CLEANER] CLEANER will clean: " << segmentsToFree << std::endl;
         rv = selectSegments(segmentsToFree);
         checkpoint();
     } else {
-        std :: cout << "clean(): cleaner does not have to run yet." << std::endl;
+        std :: cout << "[CLEANER] clean(): cleaner does not have to run yet." << std::endl;
     }
     return rv;
 }

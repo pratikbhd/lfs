@@ -321,17 +321,17 @@ int File::ReadPath(const char *path, Inode *inode) {
 	int inum, length, offset, i, error 
 		, pathLength = strlen(path);
 	
-	std::cout << "[File] ReadPath: path 0 check";
+	std::cout << "[File] ReadPath: path 0 check"<< std::endl;;
 	// The path must start with '/'
     if (path[0] != '/') {
 		std::cout << "[File] ReadPath: Invalid path, begins with: " << path[0] << std::endl;
 		return -EINVAL;
 	}
 	
-	std::cout << "[File] ReadPath: return inode check";
+	std::cout << "[File] ReadPath: return inode check"<< std::endl;;
 	Inode directoryInode = ReturnInode(static_cast<char>(reserved_inum::ROOT));
 	
-	std::cout << "[File] ReadPath: path 1 check";
+	std::cout << "[File] ReadPath: path 1 check"<< std::endl;;
 	// Check if the path is just the root
 	if (path[1] == '\0') {
 		std::cout << "[File] Read path on directory: " << path <<  std::endl;
@@ -340,7 +340,7 @@ int File::ReadPath(const char *path, Inode *inode) {
 		return 0;
 	}
 
-	std::cout << "[File] ReadPath: file read check";
+	std::cout << "[File] ReadPath: file read check"<< std::endl;;
 	// Read directory for next part of path. Initially directory is the root
 	offset = 1;
 	length = fileRead(&directoryInode, 0, directoryInode.fileSize, directory);

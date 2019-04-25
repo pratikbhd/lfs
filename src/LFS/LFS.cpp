@@ -165,8 +165,8 @@ int main(int argc, char *argv[])
     state.startCleaner = start;
     state.stopCleaner = stop;
 
-    std::cout << "lfs file: " << state.lfsFile << std::endl;
-    std::cout << "interval: " << state.interval << std::endl;
+    std::cout << "[LFS] lfs file: " << state.lfsFile << std::endl;
+    std::cout << "[LFS] interval: " << state.interval << std::endl;
 
     // Directory directory = Directory((char*)state.lfsFile.c_str());
 
