@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <ctime>
 #include "flash.h"
 #include "json.hpp"
 
@@ -150,6 +151,7 @@ void from_json(const nlohmann::json& j, Checkpoint& p);
  */
 struct block_usage {
     unsigned int inum;
+    std::time_t age;
     char use;
 };
 
