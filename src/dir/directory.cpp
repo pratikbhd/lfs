@@ -548,7 +548,7 @@ int Directory::rename(const char *from, const char *to) {
 
 	Inode fDir, tDir, ino, tino;
 
-	int err, returnval = 0;
+	int err;
 
 	splitPathAtEnd(from, &fDirPath, &fName);
 	splitPathAtEnd(to, &tDirPath, &tName);
@@ -558,29 +558,25 @@ int Directory::rename(const char *from, const char *to) {
 	err = file.ReadPath(fDirPath, &fDir);
 	if (err) {
 		std::cout << "Rename: Error " << strerror(err) << " while reading path " << fDirPath << "\n" << std::endl;
-		returnval = err;
-		goto done;
+		return  err;
 	}
 
 	err = file.ReadPath(from, &ino);
 	if (err) {
 		std::cout << "Rename: Error " << strerror(err) << " while reading path " << from << "\n" << std::endl;
-		returnval = err;
-		goto done;
+		return err;
 	}
 
 	// TODO: Support all file types
 	if (ino.fileType != static_cast<char>(fileTypes::PLAIN_FILE)) {
 		std::cout << "Rename: " << from << " has invalid filetype " << ino.fileType << "\n" << std::endl;
-		returnval = -EINVAL;
-		goto done;
+		return -EINVAL;
 	}
 
 	err = file.ReadPath(tDirPath, &tDir);
 	if (err) {
 		std::cout << "Rename: Error " << strerror(err) << " while reading path " << tDirPath << "\n" << std::endl;
-		returnval = err;
-		goto done;
+		return err;
 	}
 
 	err = file.ReadPath(to, &tino); // Just check if <to> already exists
@@ -589,13 +585,11 @@ int Directory::rename(const char *from, const char *to) {
 	}
 	else if (err) {
 		std::cout << "Rename: Error " << strerror(err) << " while reading path " << to << "\n" << std::endl;
-		returnval = err;
-		goto done;
+		return err;
 	} else if (tino.inum != ino.inum) { // <to> is a file, delete it unless is a hardlink to <from>
 		if (tino.fileType != static_cast<char>(fileTypes::PLAIN_FILE)) {
 			std::cout << "Rename: " << to << " has invalid fileType " << tino.fileType << "\n" << std::endl;
-			returnval = -EINVAL;
-			goto done;
+			return -EINVAL;
 		}
 		file.fileDelete(&tino);
 	}
@@ -605,13 +599,10 @@ int Directory::rename(const char *from, const char *to) {
 	deleteEntry(&fDir, &ino, fName);
 
 	std::cout << "Rename: DeleteEntry finished.\n" << std::endl;
-	DEBUG(("Rename: DeleteEntry finished\n"));
 	if (fDir.inum == tDir.inum) { // not moving directory. fDir was updated by DeleteEntry but tDir was not.
-		Directory_AddEntry(&fDir, &ino, tName);
+		file.NewEntry(&fDir, &ino, tName);
 	} else {
-		Directory_AddEntry(&tDir, &ino, tName);
+		file.NewEntry(&tDir, &ino, tName);
 	}
-	returnval = 0;
-done:
-	return returnval;
+	return 0;
 }
