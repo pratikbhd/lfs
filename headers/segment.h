@@ -151,8 +151,8 @@ void from_json(const nlohmann::json& j, Checkpoint& p);
  */
 struct block_usage {
     unsigned int inum;
-    std::time_t age;
     char use;
+    std::time_t age;
 };
 
 void to_json(nlohmann::json& j, const block_usage& p);

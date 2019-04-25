@@ -51,21 +51,21 @@ static struct option long_options[] = {
 void lfs_init_superblock(Log *l){
     int er = Flash_Erase((*l).flash, 0, (*l).super_block.blockCount);
     if (er)
-        fprintf(stderr, "ERASE ZERO SECTOR FAIL!\n");
+        fprintf(stderr, "[MKLFS] ERASE ZERO SECTOR FAIL!\n");
 
     char *buffer = (char*)std::malloc(sizeof(SuperBlock)+ 1);
     memset(buffer, 0, sizeof(SuperBlock)+ 1);
     std::memcpy(buffer, &(*l).super_block, sizeof(SuperBlock)+1);
-    std::cout << "writing superblock at offset: "<< LOG_SUPERBLOCK_OFFSET << std::endl;
+    std::cout << "[MKLFS] writing superblock at offset: "<< LOG_SUPERBLOCK_OFFSET << std::endl;
     int res = Flash_Write((*l).flash, LOG_SUPERBLOCK_OFFSET, 1, buffer);
     if (res)
-        std::cout << "Error writing superblock info" << std::endl;
+        std::cout << "[MKLFS] Error writing superblock info" << std::endl;
 
     std::free(buffer);
 }
 
 void lfs_init_segmentsummary(Log *l){
-    std::cout << "writing segment summary block" << std::endl;
+    std::cout << "[MKLFS] writing segment summary block" << std::endl;
     for(unsigned int i=1; i < (*l).super_block.segmentCount; i++) {
         block_usage b[(*l).super_block.blocksPerSegment];
         unsigned int j = 0;
@@ -83,7 +83,7 @@ void lfs_init_segmentsummary(Log *l){
         unsigned int offset = i*(((*l).super_block.sectorsPerBlock)*((*l).super_block.blocksPerSegment));
         int res = Flash_Write((*l).flash, offset, (*l).super_block.sectorsPerBlock, b);
         if (res) {
-            std::cout << "MKLFS summary map failed: " << offset << std::endl;
+            std::cout << "[MKLFS] MKLFS summary map failed: " << offset << std::endl;
         }
     }
 }
@@ -95,19 +95,19 @@ void lfs_init_checkpoint(Log *l){
     //Write First Checkpoint
     memset(buffer, 0, sizeof(Checkpoint)+ 1);
     memcpy(buffer, &check_point, sizeof(Checkpoint)+1);
-    std::cout << "writing checkpoint one at offset: "<< LOG_CP1_OFFSET << std::endl;
+    std::cout << "[MKLFS] writing checkpoint one at offset: "<< LOG_CP1_OFFSET << std::endl;
     int res = Flash_Write((*l).flash, LOG_CP1_OFFSET, 1, buffer);
     if (res) {
-        std::cout << "MKLFS WRITE FAIL:" << res << std::endl;
+        std::cout << "[MKLFS] MKLFS WRITE FAIL:" << res << std::endl;
     }
     
     //Write Second Checkpoint
     memset(buffer, 0, sizeof(Checkpoint)+ 1);
     memcpy(buffer, &check_point, sizeof(Checkpoint)+1);
-    std::cout << "writing checkpoint two at offset: "<< LOG_CP2_OFFSET << std::endl;
+    std::cout << "[MKLFS] writing checkpoint two at offset: "<< LOG_CP2_OFFSET << std::endl;
     res = Flash_Write((*l).flash, LOG_CP2_OFFSET, 1, buffer);
     if (res) {
-        std::cout << "MKLFS WRITE FAIL" << std::endl;
+        std::cout << "[MKLFS] MKLFS WRITE FAIL" << std::endl;
     }
 
     std::free(buffer);
@@ -130,10 +130,10 @@ void lfs_init_inodemap(Log *l) {
     char buffer[sizeof(Inode)+ 1];
     memset(buffer, 0, sizeof(Inode)+ 1);
     memcpy(buffer, &iFile, sizeof(Inode)+1);
-    std::cout << "writing iFile at offset: " << LOG_IFILE_OFFSET << std::endl;
+    std::cout << "[MKLFS] writing iFile at offset: " << LOG_IFILE_OFFSET << std::endl;
     int res = Flash_Write((*l).flash, LOG_IFILE_OFFSET, 1, buffer);
     if (res) {
-        std::cout << "MKLFS WRITE FAIL" << std::endl;
+        std::cout << "[MKLFS] MKLFS WRITE FAIL" << std::endl;
     }
 }
 
@@ -147,7 +147,7 @@ bool lfs_create(long no_of_segments,
     // First delete the file if it already exists
     if( access( file_name, F_OK ) != -1 ) {
         if( remove( file_name ) != 0 )
-            std::cout << "Error deleting file\n";
+            std::cout << "[MKLFS] Error deleting file\n";
     }
 
     // Create the flash file
@@ -157,14 +157,14 @@ bool lfs_create(long no_of_segments,
 
     // If return code is not 0, something has gone wrong in creating the flash file
     if (return_code != 0) {
-        std::cout << "Failure! Exiting now...\n";
+        std::cout << "[MKLFS] Failure! Exiting now...\n";
         exit(EXIT_FAILURE);
     }
 }
 
 int main(int argc, char** argv)
 {
-    std::cout << "Starting MKLFS" << std::endl;
+    std::cout << "[MKLFS] Starting MKLFS" << std::endl;
     // Initializing the default values for the parameters
 	long no_of_segments = 50;
 	long blocks_per_segment = 32;
@@ -202,7 +202,7 @@ int main(int argc, char** argv)
                 break;
 
             default:
-                std::cout << "Invalid input arguments\n";
+                std::cout << "[MKLFS] Invalid input arguments\n";
                 abort ();
                 break;         
         }
@@ -213,7 +213,7 @@ int main(int argc, char** argv)
     unsigned int blocks;
     Log log = Log();
     log.flash = Flash_Open(file_name, 0, &blocks);
-    std::cout << " s: "<< no_of_segments << " l: " << blocks_per_segment << " b: " << sectors_per_block << " blks: " << blocks << " w: " << wear_limit;
+    std::cout << "[MKLFS] s: "<< no_of_segments << " l: " << blocks_per_segment << " b: " << sectors_per_block << " blks: " << blocks << " w: " << wear_limit;
     log.super_block = SuperBlock(no_of_segments, blocks_per_segment, sectors_per_block, blocks, wear_limit);
     lfs_init_superblock(&log);
     lfs_init_checkpoint(&log);
@@ -221,5 +221,5 @@ int main(int argc, char** argv)
     lfs_init_inodemap(&log);
     Flash_Close(log.flash);
 
-    std::cout<< "MKLFS Complete!" << std::endl;
+    std::cout<< "[MKLFS] MKLFS Complete!" << std::endl;
 }

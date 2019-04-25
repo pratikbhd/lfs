@@ -46,7 +46,7 @@ block_usage Log::GetBlockUsage(log_address address) {
     //The first block of the segment serves as the segment summary block.
     //Thus we have to read the segment sequentially starting from the first block
     //to locate the requested block usage record.
-    block_usage b = {0, 0};
+    block_usage b = {0, 0, std::time(nullptr)};
     char data[summaryBlockBytes()];
     log_address read_address = GetLogAddress(address.segmentNumber, 0);
     Read(read_address, summaryBlockBytes(), data);

@@ -2,6 +2,7 @@
 #include <iostream>
 #include "segment.h"
 #include "flash.h"
+#include "color.hpp"
 
 Segment::Segment(Flash flash, unsigned int bytes_per_segment, unsigned int sectors_per_segment, bool active_segment): 
 flash(flash), bytesPerSegment(bytes_per_segment), sectorsPerSegment(sectors_per_segment), active(active_segment), 
@@ -33,7 +34,9 @@ void Segment::Load(unsigned int segment_number) {
                 buffer
               );
     if(res){
-        std::cout << "[Segment] Segment::Load() READ FAIL!" << std::endl;
+        Color::Modifier red(Color::FG_RED);
+        Color::Modifier def(Color::FG_DEFAULT);
+        std::cout << red << "[Segment] Segment::Load() READ FAIL!" << def << std::endl;
     } else {
         std::memcpy(data, buffer, bytesPerSegment + 1);
         loaded = true;
@@ -44,8 +47,11 @@ void Segment::Load(unsigned int segment_number) {
 void Segment::Erase(){
     unsigned int block_number = (segmentNumber*sectorsPerSegment)/FLASH_SECTORS_PER_BLOCK;
     int res = Flash_Erase(flash, block_number, sectorsPerSegment/FLASH_SECTORS_PER_BLOCK);
-    if (res)
-        std::cout << "[Segment] Segment::Erase() Erasing the segment failed";
+    if (res){
+        Color::Modifier red(Color::FG_RED);
+        Color::Modifier def(Color::FG_DEFAULT);
+        std::cout << red << "[Segment] Segment::Erase() Erasing the segment failed" <<def<< std::endl;
+    }
 }
 
 void Segment::ForceFlush(){
@@ -67,8 +73,11 @@ void Segment::Flush(){
                  sectorsPerSegment,
                  data
                );
-    if(res)
-        std::cout << "[Segment] Segment::Flush() Flushing the Segment :" << segmentNumber << "to flash failed!";
+    if(res){
+        Color::Modifier red(Color::FG_RED);
+        Color::Modifier def(Color::FG_DEFAULT);
+        std::cout << red << "[Segment] Segment::Flush() Flushing the Segment :" << segmentNumber << "to flash failed!" << def<< std::endl;
+    }
 
     loaded = false;
 }

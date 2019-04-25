@@ -6,13 +6,13 @@ void File::getiFile() {
     iFile = Inode();
     int res = Flash_Read(log.flash, LOG_IFILE_OFFSET, 1, buffer);
     if (res) {
-        std::cout <<"[Log] iFile READ FAIL" << std::endl;
+        std::cout <<"[File_Private] iFile READ FAIL" << std::endl;
     }
     std::memcpy(&iFile, buffer, sizeof(Inode));
 }
 
 log_address File::getNewLogEnd(){
-    block_usage b = {0,static_cast<char>(usage::INUSE)};
+    block_usage b = {0,static_cast<char>(usage::INUSE), std::time(nullptr)};
     log_address finder = log.Log_end_address;
 
     while (b.use == static_cast<char>(usage::INUSE)) {
@@ -80,10 +80,10 @@ bool File::write(Inode *target, unsigned int blockNumber, int length, const char
     int max_block_pointers = 4 + (log.super_block.bytesPerBlock/sizeof(log_address));
     
     if (length > ((log.super_block.bytesPerBlock)*max_block_pointers)) {
-        throw "[Log] Log::Write() - File length exceeds the maximum permitted file size!";
+        throw "[File_Private] Log::Write() - File length exceeds the maximum permitted file size!";
     }
 
-	std::cout << "[Log] Write Enter ==> length: "<< length <<", file size: "<< (*target).fileSize << ", in->inum: " << (*target).inum << std::endl;
+	std::cout << "[File_Private] Write Enter ==> length: "<< length <<", file size: "<< (*target).fileSize << ", in->inum: " << (*target).inum << std::endl;
 
     Inode *update = target;
 
@@ -94,7 +94,7 @@ bool File::write(Inode *target, unsigned int blockNumber, int length, const char
     /* Do the write one block at a time.*/
 	int i = 0; // Buffer offset, number of blocks
     while (length > 0) {
-        if (blockNumber > max_block_pointers) throw "[Log] Log::Write() - File block numbers exceeds the maximum permitted file size!";
+        if (blockNumber > max_block_pointers) throw "[File_Private] Log::Write() - File block numbers exceeds the maximum permitted file size!";
 
         // get new log end address
         log_address address = getNewLogEnd();
@@ -114,10 +114,10 @@ bool File::write(Inode *target, unsigned int blockNumber, int length, const char
 
         // Set usage. Should this be done twice to make sure?
         updateInode(update, blockNumber, address);
-        std::cout << "[Log] Write Block (input address params)==> blocknum: " << blockNumber << " sn: " << address.segmentNumber << " blk_offset: " << address.blockOffset;
+        std::cout << "[File_Private] Write Block (input address params)==> blocknum: " << blockNumber << " sn: " << address.segmentNumber << " blk_offset: " << address.blockOffset;
         
         log_address verify = GetLogAddress(*update, blockNumber);
-        std::cout << "[Log] Write Block (updated address params)==> blocknum: " << blockNumber << " sn: " << verify.segmentNumber << " blk_offset: " << verify.blockOffset;
+        std::cout << "[File_Private] Write Block (updated address params)==> blocknum: " << blockNumber << " sn: " << verify.segmentNumber << " blk_offset: " << verify.blockOffset;
 
         // one block written successfully.
         length -= log.super_block.bytesPerBlock;
@@ -147,7 +147,7 @@ bool File::write(Inode *target, unsigned int blockNumber, int length, const char
             int end   = begin + sizeof(Inode);
             int split_point = 0;
             
-            std::cout << "[Log] Write iFile INUM: " << update->inum << " BEGIN: " << begin << " END: " << end << std::endl;
+            std::cout << "[File_Private] Write iFile INUM: " << update->inum << " BEGIN: " << begin << " END: " << end << std::endl;
 
             //The iFile is a non continuous set of blocks identified by block number we try to maximize the usage of these blocks, if inode doesnt fit perfectly.
             if (begin % log.super_block.bytesPerBlock > end % log.super_block.bytesPerBlock) {
@@ -172,7 +172,7 @@ bool File::write(Inode *target, unsigned int blockNumber, int length, const char
                 bytes_done = sizeof(Inode);
             }
 
-            std::cout << "[Log] Write iFile split_point: " << split_point << " BLOCKNUM: " << iFile_block_number << " offset: " << offset << " bytes_done: "<< bytes_done << std::endl;
+            std::cout << "[File_Private] Write iFile split_point: " << split_point << " BLOCKNUM: " << iFile_block_number << " offset: " << offset << " bytes_done: "<< bytes_done << std::endl;
 
             bool new_ifile_block = false;
             if(GetLogAddress(iFile, iFile_block_number).segmentNumber == 0) {
@@ -197,6 +197,9 @@ bool File::write(Inode *target, unsigned int blockNumber, int length, const char
             first_iter = false;
         }
     }
+
+    //run segment cleaner
+    clean();
 
     return true;
 }
@@ -227,25 +230,25 @@ void File::checkpoint() {
     /* Erase first segment for flash metadata */
     int res = Flash_Erase(log.flash, 0, 1);
     if (res) {
-        std::cout << "[Log] Erasing superblock on flash failed"; 
+        std::cout << "[File_Private] Erasing superblock on flash failed"; 
         return;
     }
     
     res = Flash_Write(log.flash, LOG_IFILE_OFFSET, 1, &iFile);
     if (res) {
-        std::cout << "[Log] iFile write failed";
+        std::cout << "[File_Private] iFile write failed";
         return;
     }
 
     res = Flash_Write(log.flash, LOG_SUPERBLOCK_OFFSET, 1, &log.super_block);
     if (res) {
-        std::cout << "[Log] superblock write failed";
+        std::cout << "[File_Private] superblock write failed";
         return;
     }
 
     res = Flash_Write(log.flash, first ? LOG_CP1_OFFSET : LOG_CP2_OFFSET, 1, &current);
     if (res) {
-        std::cout << "[Log] checkpoint write failed";
+        std::cout << "[File_Private] checkpoint write failed";
         return;
     }
 
