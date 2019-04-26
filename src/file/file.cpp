@@ -366,6 +366,8 @@ int File::ReadPath(const char *path, Inode *inode) {
 
 		std::cout << "[File] ReadPath: getting inode for: " << name << std::endl;
 		
+		std::cout << "[File] Reading directory: " << directory << "length: " << length << "Name: " << name << "Inum: " << inum << std::endl;
+
 		error = ReturnInodeFromBuffer(directory, length, name, &inum);
 		
 		if (error) {

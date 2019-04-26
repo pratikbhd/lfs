@@ -109,30 +109,30 @@ int c_Flush(const char *path, struct fuse_file_info *fi) {
 
 int c_HardLink(const char *to, const char *from) {
     std::cout << "[LFS] Hardlink called: stub only";
-	return 0;
+	return directory->createHardLink(to, from);
 }
 
-int c_SymLink(const char *file, const char *sym) {
+int c_SymLink(const char *to, const char *sym) {
     std::cout << "[LFS] Symlink called: stub only";
-    return 0;
+    return directory->createSymLink(to, sym);
 }
 
 int c_ReadLink(const char *path, char *buf, size_t bufsize){
     std::cout << "[LFS] Readlink called: stub only";
-    return 0;
+    return directory->readLink(path, buf, bufsize);
 }
 
 int c_Unlink(const char *path){
     std::cout << "[LFS] Unlink called: stub only";
-    return 0;
+    return directory->unlink(path);
 }
 
 int c_Rmdir(const char *path) {
     std::cout << "[LFS] Remove Directory called: stub only";
-    return 0;
+    return directory->removeDirectory(path);
 }
 
 int c_Rename(const char *from, const char *to){
     std::cout << "[LFS] Rename called: stub only";
-    return 0;
+    return directory->rename(from, to);
 }
