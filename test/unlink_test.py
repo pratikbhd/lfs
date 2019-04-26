@@ -68,11 +68,11 @@ class TestBasic(TestBase):
 
     def test_01_create_hardlink(self):
         global options
-        path = os.path.join(options.mount, "foo.txt")
+        path = os.path.join(options.mount, "foo")
         fd = open(path, "w")
         fd.write("hello")
         fd.close()
-        linkpath = os.path.join(options.mount, "bar.txt")
+        linkpath = os.path.join(options.mount, "bar")
         os.link(path, linkpath)
 
     # def test_01_write_and_write_and_read(self):

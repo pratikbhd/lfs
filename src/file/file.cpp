@@ -369,6 +369,8 @@ int File::ReadPath(const char *path, Inode *inode) {
 		std::cout << "[File] Reading directory: " << directory << "length: " << length << "Name: " << name << "Inum: " << inum << std::endl;
 
 		error = ReturnInodeFromBuffer(directory, length, name, &inum);
+
+		std::cout << "[File] Reading directory: " << directory << "length: " << length << "Name: " << name << "Inum: " << inum << std::endl;
 		
 		if (error) {
 			std::cout << "[File] ReadPath: Could not follow path: " << path << " Failed to read: " << name << std::endl;
@@ -431,6 +433,7 @@ int File::ReturnInodeFromBuffer(const char *buf, int length, const char *name, i
 		return 0;
 	}
 	
+	std::cout << "Hello" << std::endl;
 	// Nothing was found
 	return -ENOENT;
 }
