@@ -591,6 +591,7 @@ int File::fileGetattr(const char *path, struct stat *stbuf) {
 
 void File::Flush(){
     (*log.log_end).ForceFlush();
+	log.RefreshCache((*log.log_end).GetSegmentNumber());
     operation_count = max_operations;
     checkpoint();
 }

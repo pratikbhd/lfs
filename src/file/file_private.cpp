@@ -37,6 +37,7 @@ bool File::updateInode(Inode *i, int index, log_address address) {
     block_usage b;
     b.inum = (*i).inum;
     b.use = static_cast<char>(usage::INUSE);
+    b.age = std::time(nullptr);
 
     if(index < 0) {
         return false;
