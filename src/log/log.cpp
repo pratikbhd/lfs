@@ -60,7 +60,7 @@ void Log::Read(log_address address, int length, char *buffer) {
     if (offsetBytes + length > super_block.bytesPerSegment)
         throw "Log::Read() - Cannot read more than a segment! - " + std::to_string(offsetBytes + length);
 
-    /*  Update Log End segment */
+    //check segment cache, if log end does not have the requested segment.
     if((*log_end).GetSegmentNumber() != address.segmentNumber) {
         for (int i = 0; i < sizeof(cache) / sizeof(cache[0]); i++) {
             if ((*cache[i]).GetSegmentNumber() == address.segmentNumber){
@@ -69,12 +69,15 @@ void Log::Read(log_address address, int length, char *buffer) {
             }
         }
         
+        //segment not found in segment cache.
         (*cache[cache_round_robin]).Load(address.segmentNumber);
+        memcpy(buffer, (*cache[cache_round_robin]).data + offsetBytes, length);
         if (cache_round_robin >= (sizeof(cache) / sizeof(cache[0])) - 1){
             cache_round_robin = 0;
         } else {
             cache_round_robin++;
         }
+        return;
     }
     
     memcpy(buffer, (*log_end).data + offsetBytes, length);   
@@ -95,6 +98,7 @@ void Log::Write(log_address address, int length, char *buffer) {
     /*  Update Log End segment */
     if((*log_end).GetSegmentNumber() != address.segmentNumber) {
         (*log_end).Flush();
+        refreshCache((*log_end).GetSegmentNumber());
         (*log_end).Load(address.segmentNumber);
     }
     
@@ -111,6 +115,7 @@ void Log::Free(log_address address){
     /* blocks to be freed should be loaded to main memory */
     if((*log_end).GetSegmentNumber() != address.segmentNumber) {
         (*log_end).Flush();
+        refreshCache((*log_end).GetSegmentNumber());
         (*log_end).Load(address.segmentNumber);
     }
     

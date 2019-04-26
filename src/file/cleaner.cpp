@@ -2,6 +2,7 @@
 #include <algorithm>
 #include "file.hpp"
 #include "cost_benefit.hpp"
+#include "color.hpp"
 
 Inode File::getInode(int inum){
     int blocknum = (inum)/((log.super_block.bytesPerBlock)/(sizeof(Inode)));
@@ -31,9 +32,12 @@ void File::updateInode(Inode in, log_address before, log_address after) {
 }
 
 bool File::cleanSegments(std::vector<unsigned int> segments) {
-    std::cout << "[CLEANER] cleanSegments() BEGIN" << std::endl;
+    Color::Modifier yel(Color::FG_RED);
+    Color::Modifier def(Color::FG_DEFAULT);
+    std::cout << yel << "[CLEANER] cleanSegments() BEGIN" << def <<std::endl;
     /* Iterate over all of the segments passed to the function */
     for(unsigned int i = 0; i< segments.size(); i++) {
+        std::cout << yel << "[CLEANER] cleaning segment: " << segments[i] << def <<std::endl;
         for (unsigned int j = log.SummaryBlockSize(); j < log.super_block.blocksPerSegment; j++) {
             log_address block_address = log.GetLogAddress(segments[i], j);
             block_usage move = log.GetBlockUsage(block_address);
@@ -53,6 +57,7 @@ bool File::cleanSegments(std::vector<unsigned int> segments) {
         }
         log.super_block.usedSegments--;  
     }
+    std::cout << yel << "[CLEANER] cleanSegments() END" << def <<std::endl;
     return true;
 }
 
@@ -99,7 +104,9 @@ bool File::clean() {
     bool rv = true;
     if(state.startCleaner >= (log.super_block.segmentCount - log.super_block.usedSegments)) {
         int segmentsToFree = state.stopCleaner - state.startCleaner;
-        std::cout << "[CLEANER] CLEANER will clean: " << segmentsToFree << std::endl;
+        Color::Modifier yel(Color::FG_RED);
+        Color::Modifier def(Color::FG_DEFAULT);
+        std::cout << yel << "[CLEANER] CLEANER will clean: " << segmentsToFree << def << std::endl;
         rv = selectSegments(segmentsToFree);
         checkpoint();
     } else {

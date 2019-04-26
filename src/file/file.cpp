@@ -333,7 +333,7 @@ int File::ReadPath(const char *path, Inode *inode) {
 	Inode directoryInode = ReturnInode(static_cast<char>(reserved_inum::ROOT));
 	
 	std::cout << "[File] ReadPath: path 1 check"<< std::endl;;
-	// Check if the path is just the root
+	// Check if the path is jinuust the root
 	if (path[1] == '\0') {
 		std::cout << "[File] Read path on directory: " << path <<  std::endl;
 		std::cout << "[File] Root->inum = " <<  directoryInode.inum << " , length = " << directoryInode.fileSize << std::endl;
@@ -433,7 +433,6 @@ int File::ReturnInodeFromBuffer(const char *buf, int length, const char *name, i
 		return 0;
 	}
 	
-	std::cout << "Hello" << std::endl;
 	// Nothing was found
 	return -ENOENT;
 }
