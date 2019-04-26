@@ -81,3 +81,11 @@ int Log::GetFreeBlockCount(int segmentNumber){
     }
     return free;
 }
+
+void Log::refreshCache(int segmentNumber){
+    for(int i = 0; i< sizeof(cache) / sizeof(cache[0]); i++) {
+        if((*cache[i]).GetSegmentNumber() == segmentNumber){
+            (*cache[i]).Load(segmentNumber);
+        }
+    }
+}

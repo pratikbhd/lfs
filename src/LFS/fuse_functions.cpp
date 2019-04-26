@@ -18,121 +18,138 @@
 #include<iostream>
 #include "fuse_functions.hpp"
 #include"directory.hpp"
+#include "color.hpp"
 
 Directory *directory;
 
 void* c_Initialize(struct fuse_conn_info *conn) {
-    std::cout <<"[LFS] c_Initialize called: implemented";
+    std::cout <<"[LFS] c_Initialize called: implemented" << std::endl;
     directory = new Directory(((inputState*)fuse_get_context()->private_data));
     return directory->Initialize(conn);
 }
 
 int c_fileCreate(const char *name, mode_t mode, struct fuse_file_info *fi) {
-    std::cout <<"[LFS] c_fileCreate called: implemented";
+    std::cout <<"[LFS] c_fileCreate called: implemented"<< std::endl;
     return directory->file.fileCreate(name, mode, fi);
 
 }
 
 int c_fileOpen(const char *name, struct fuse_file_info *fi) {
-    std::cout <<"[LFS] c_fileOpen called: implemented";
+    std::cout <<"[LFS] c_fileOpen called: implemented"<< std::endl;
     return directory->file.fileOpen(name, fi);
-
 }
 
 int c_directoryRead(const char *path, char *buf, size_t length, off_t offset,
 	   			struct fuse_file_info *fi) {
-    std::cout <<"[LFS] c_directoryRead called: implemented";
+    std::cout <<"[LFS] c_directoryRead called: implemented"<< std::endl;
     return directory->directoryRead(path, buf, length, offset, fi);
 
 }
 
 int c_directoryWrite(const char *path, const char *buf, size_t length, off_t offset,
 	   			struct fuse_file_info *fi) {
-    std::cout <<"[LFS] c_directoryWrite called: implemented";
+    std::cout <<"[LFS] c_directoryWrite called: implemented"<< std::endl;
     return directory->directoryWrite(path, buf, length, offset, fi);
 
 }
 
 int c_fileGetattr(const char *path, struct stat *stbuf) {
-    std::cout <<"[LFS] c_fileGetattr called: implemented";
+    std::cout <<"[LFS] c_fileGetattr called: implemented"<< std::endl;
     return directory->file.fileGetattr(path, stbuf);
 }
 
 int c_directoryReaddir(const char *path, void *buf, fuse_fill_dir_t filler, 
 			off_t offset, struct fuse_file_info *fi) {
-    std::cout <<"[LFS] c_directoryReaddir called: implemented";
+    std::cout <<"[LFS] c_directoryReaddir called: implemented"<< std::endl;
     return directory->directoryReaddir(path, buf, filler, offset, fi);
 }
 
 int c_makeDirectory(const char *path, mode_t mode) {
-    std::cout <<"[LFS] mkdir called: implemented";
+    std::cout <<"[LFS] mkdir called: implemented"<< std::endl;
     return directory->makeDirectory(path, mode);
 
 }
 
 int c_Statfs(const char* path, struct statvfs *stbuf){
-    std::cout <<"[LFS] c_Statfs called: implemented";
+    std::cout <<"[LFS] c_Statfs called: implemented"<< std::endl;
     return directory->Statfs(path, stbuf);
 }
 
 int c_Truncate(const char *path, off_t size) {
-	std::cout << "[LFS] Truncate called: implemented";
+	std::cout << "[LFS] Truncate called: implemented"<< std::endl;
     return directory->Truncate(path, size);
 }
 
 void c_Destroy(void *data) {
     delete directory;
-	std::cout << "[LFS] Destroy called: implemented";
+	std::cout << "[LFS] Destroy called: implemented"<< std::endl;
     return;
 }
 
 int c_access(const char* path, int mask){
-    std::cout <<"[LFS] access called: implemented";
+    std::cout <<"[LFS] access called: implemented"<< std::endl;
     return directory->Exists(path);
 }
 
 int c_File_Release(const char *path, struct fuse_file_info *fi) {
-    // TODO
-    std::cout <<"[LFS] File_Release called: stub only";
+    Color::Modifier red(Color::FG_RED);
+    Color::Modifier def(Color::FG_DEFAULT);
+    std::cout << red <<"[LFS] File_Release called: stub only"<< def <<std::endl;
     return 0;
 }
 
 int c_Opendir(const char *name, struct fuse_file_info *finfo) {
-	std::cout << "[LFS] Open Dir called: stub only";
+    Color::Modifier red(Color::FG_RED);
+    Color::Modifier def(Color::FG_DEFAULT);
+	std::cout << red <<"[LFS] Open Dir called: stub only"<< def <<std::endl;
     return 0;
 }
 
 int c_Flush(const char *path, struct fuse_file_info *fi) {
-    std::cout << "[LFS] Flush called: stub only";
+    Color::Modifier red(Color::FG_RED);
+    Color::Modifier def(Color::FG_DEFAULT);
+    std::cout << red <<"[LFS] Flush called: stub only"<< std::endl;
     return 0;
 }
 
 int c_HardLink(const char *to, const char *from) {
-    std::cout << "[LFS] Hardlink called: stub only";
+    Color::Modifier red(Color::FG_RED);
+    Color::Modifier def(Color::FG_DEFAULT);
+    std::cout << red <<"[LFS] Hardlink called: stub only"<< def<< std::endl;
 	return 0;
 }
 
 int c_SymLink(const char *file, const char *sym) {
-    std::cout << "[LFS] Symlink called: stub only";
+    Color::Modifier red(Color::FG_RED);
+    Color::Modifier def(Color::FG_DEFAULT);
+    std::cout << red <<"[LFS] Symlink called: stub only"<< def<< std::endl;
     return 0;
 }
 
 int c_ReadLink(const char *path, char *buf, size_t bufsize){
-    std::cout << "[LFS] Readlink called: stub only";
+    Color::Modifier red(Color::FG_RED);
+    Color::Modifier def(Color::FG_DEFAULT);
+    std::cout << red <<"[LFS] Readlink called: stub only"<< def<< std::endl;
     return 0;
 }
 
 int c_Unlink(const char *path){
-    std::cout << "[LFS] Unlink called: stub only";
+    Color::Modifier red(Color::FG_RED);
+    Color::Modifier def(Color::FG_DEFAULT);
+    std::cout << red <<"[LFS] Unlink called: stub only"<< def<< std::endl;
     return 0;
 }
 
 int c_Rmdir(const char *path) {
-    std::cout << "[LFS] Remove Directory called: stub only";
+    Color::Modifier red(Color::FG_RED);
+    Color::Modifier def(Color::FG_DEFAULT);
+    std::cout << red <<"[LFS] Remove Directory called: stub only"<< def<< std::endl;
     return 0;
 }
 
 int c_Rename(const char *from, const char *to){
-    std::cout << "[LFS] Rename called: stub only";
+    Color::Modifier red(Color::FG_RED);
+    Color::Modifier def(Color::FG_DEFAULT);
+    std::cout << red <<"[LFS] Rename called: stub only"<< def<< std::endl;
     return 0;
 }
