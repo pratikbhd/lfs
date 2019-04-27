@@ -610,8 +610,8 @@ log_address File::GetLogAddress(Inode i, int index) {
     } else {
         if(i.indirect_block.segmentNumber > 0) {
             char data[log.super_block.bytesPerBlock];
-            unsigned int offsetBytes = (index - 4) * sizeof(log_address);
-            if (offsetBytes + sizeof(log_address) > log.super_block.bytesPerBlock)
+            unsigned int offsetBytes = (index - 4) * sizeof(log_address) + (index - 4); //last (index -4) added to account for \0
+            if (offsetBytes + sizeof(log_address)+1 > log.super_block.bytesPerBlock)
                 throw "Log::GetLogAddress() - the index specified references block pointer data that exceeds a block size. Not supported as of now.";
 
             log.Read(i.indirect_block, log.super_block.bytesPerBlock, data);

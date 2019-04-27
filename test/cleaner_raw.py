@@ -35,7 +35,7 @@ def main(args):
     if options.mount is None:
         raise Exception("You must use -m to specify a mount point.")
 
-    for index in range(20):
+    for index in range(40):
             print("ITERATION : " + str(index))
             path = os.path.join(options.mount, "foo")
             fd = open(path, "w")
@@ -63,6 +63,10 @@ def main(args):
             fd.write("hello")
             fd.close()
             path2 = os.path.join(options.mount, "bar"+str(index))
+
+            if index == 38:
+                print("reached 30th iteration!!")
+
             fd = open(path2, "w")
             fd.write("goodbye")
             fd.close()
