@@ -1,5 +1,7 @@
 # TODO
 
+* File Layer
+    * fileWrite -> Data array can be length + offset
 * Log layer
     * segment caching
     * moving checkpoints

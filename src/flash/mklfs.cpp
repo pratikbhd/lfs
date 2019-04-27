@@ -223,3 +223,6 @@ int main(int argc, char** argv)
 
     std::cout<< "[MKLFS] MKLFS Complete!" << std::endl;
 }
+
+//usage script
+// ./mklfs -l 32 -s 1024 -b 2 -w 1000 flash_test

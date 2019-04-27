@@ -59,6 +59,10 @@ void Segment::ForceFlush(){
     Flush();
 }
 
+bool Segment::IsLoaded(){
+    return loaded;
+}
+
 void Segment::Flush(){
     //only an active segment is written back to log. This segment should be the log end.
     if(!active) return;

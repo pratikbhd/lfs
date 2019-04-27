@@ -84,6 +84,9 @@ void Log::Read(log_address address, int length, char *buffer) {
         (*log_end).Load(address.segmentNumber);
     }
     
+    if (!(*log_end).IsLoaded())
+        throw "Log::Read() - Attempting to read from a segment that is not loaded!!";
+
     memcpy(buffer, (*log_end).data + offsetBytes, length);   
 }
 
@@ -106,6 +109,9 @@ void Log::Write(log_address address, int length, char *buffer) {
         (*log_end).Load(address.segmentNumber);
     }
     
+    if (!(*log_end).IsLoaded())
+        throw "Log::Write() - Attempting to write to a segment that is not loaded!!";
+
     memcpy((*log_end).data + offsetBytes, buffer, length);
 }
 
@@ -122,7 +128,10 @@ void Log::Free(log_address address){
         RefreshCache((*log_end).GetSegmentNumber());
         (*log_end).Load(address.segmentNumber);
     }
-    
+
+    if (!(*log_end).IsLoaded())
+        throw "Log::Free() - Attempting to free a segment that is not loaded!!";
+
     memset((*log_end).data + offsetBytes, 0, super_block.bytesPerBlock);
 }
 

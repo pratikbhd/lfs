@@ -227,6 +227,7 @@ void File::checkpoint() {
 
     /* Flush log end to flash */
     (*log.log_end).Flush();
+    (*log.log_end).Load((*log.log_end).GetSegmentNumber());
 
     /* Erase first segment for flash metadata */
     int res = Flash_Erase(log.flash, 0, 1);

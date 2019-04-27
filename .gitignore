@@ -17,3 +17,5 @@ mklfs\.dSYM/
 \.vscode/ipch/
 
 lfs
+
+\.idea/

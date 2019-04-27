@@ -173,8 +173,6 @@ int main(int argc, char *argv[])
     // directory.Initialize();
     // const char *path = "/FlashDir";
     // directory.makeDirectory(path, S_ISUID);
-
-    // directory.file.log.Flush();
     
     // test for read dir
     // char buffer[sizeof(Inode) + 1];
