@@ -12,7 +12,7 @@ data(new char[bytes_per_segment + 1]){
 
 //Explicity we have to delete all pointer members of this class to avoid memory leaks.
 Segment::~Segment(){
-        std::cout << "[Segment] Segment Deleted : " << segmentNumber;
+        std::cout << "[Segment] Segment Deleted : " << segmentNumber << std::endl;
         delete[] data;  // deallocate
 }
 

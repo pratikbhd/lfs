@@ -8,7 +8,7 @@
 
 struct inputState{
     char* lfsFile;
-    // int cacheSize;
+    int cacheSize;
     int interval;
     int startCleaner;
     int stopCleaner;

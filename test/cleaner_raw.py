@@ -35,7 +35,7 @@ def main(args):
     if options.mount is None:
         raise Exception("You must use -m to specify a mount point.")
 
-    for index in range(200):
+    for index in range(50):
             print("ITERATION : " + str(index))
             path = os.path.join(options.mount, "foo")
             fd = open(path, "w")

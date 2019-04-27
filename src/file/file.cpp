@@ -13,8 +13,8 @@
 
 char convertMode(mode_t mode);
 
-File::File(inputState state) {
-	state = state;
+File::File(inputState i_state) {
+	state = i_state;
     log = Log();
     unsigned int blocks;
     log.flash = Flash_Open(state.lfsFile, 0, &blocks); // TODO: Get the filename in state->lfsfile (char* format)
