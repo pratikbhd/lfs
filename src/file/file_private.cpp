@@ -48,7 +48,7 @@ bool File::updateInode(Inode *i, int index, log_address address) {
         (*i).block_pointers[index] = address;
     } else {
         char data[log.super_block.bytesPerBlock];
-        unsigned int offsetBytes = (index - 4) * sizeof(log_address) + (index - 4); //(ending index-4 added to account for \0)
+        unsigned int offsetBytes = (index - 4) * sizeof(log_address); //(ending index-4 added to account for \0)
         if (offsetBytes + sizeof(log_address) + 1 > log.super_block.bytesPerBlock)
             throw "Log::UpdateInode - the indirect block pointer data exceeded a block size. Not supported as of now.";
 
@@ -64,9 +64,15 @@ bool File::updateInode(Inode *i, int index, log_address address) {
         } else {
             (*i).indirect_block = getNewLogEnd();
             memset(data, 0, sizeof(log.super_block.bytesPerBlock));
+            unsigned int init_offset = 0;
+            log_address default_address = {0,0};
+            while(init_offset + sizeof(log_address) < log.super_block.bytesPerBlock){
+                memcpy((data + init_offset), &default_address, sizeof(log_address));
+                init_offset += sizeof(log_address);
+            }
         }
 
-        memcpy((data + offsetBytes), &address, sizeof(log_address)+1);
+        memcpy((data + offsetBytes), &address, sizeof(log_address));
         //write back indirect block at the log end.
         log.Write((*i).indirect_block, log.super_block.bytesPerBlock, data);
         //update block usage of indirect block at log end.
