@@ -66,14 +66,14 @@ class TestBasic(TestBase):
         fd.close()
         self.assertEqual(contents, "hello")
 
-    def test_01_create_hardlink(self):
-        global options
-        path = os.path.join(options.mount, "foo")
-        fd = open(path, "w")
-        fd.write("hello")
-        fd.close()
-        linkpath = os.path.join(options.mount, "bar")
-        os.link(path, linkpath)
+    # def test_01_create_hardlink(self):
+    #     global options
+    #     path = os.path.join(options.mount, "foo")
+    #     fd = open(path, "w")
+    #     fd.write("hello")
+    #     fd.close()
+    #     linkpath = os.path.join(options.mount, "bar")
+    #     os.link(path, linkpath)
 
     # def test_01_write_and_write_and_read(self):
     #     global options
