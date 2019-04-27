@@ -82,9 +82,11 @@ int Log::GetFreeBlockCount(int segmentNumber){
     return free;
 }
 
-void Log::refreshCache(int segmentNumber){
+void Log::RefreshCache(int segmentNumber){
+    std::cout << "[LOG] Check Cache for Refresh: " << segmentNumber <<std::endl;
     for(int i = 0; i< sizeof(cache) / sizeof(cache[0]); i++) {
         if((*cache[i]).GetSegmentNumber() == segmentNumber){
+            std::cout << "[LOG] Refreshing Cache: " << segmentNumber <<std::endl;
             (*cache[i]).Load(segmentNumber);
         }
     }

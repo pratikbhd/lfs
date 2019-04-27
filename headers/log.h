@@ -17,10 +17,11 @@ struct inputState{
 class Log {
     private:
         unsigned int summaryBlockBytes();
-        void refreshCache(int segmentNumber);
     public:
         //log address of the current log end.
         log_address Log_end_address;
+
+        void RefreshCache(int segmentNumber);
 
         log_address GetNextFreeBlock(log_address current);
 

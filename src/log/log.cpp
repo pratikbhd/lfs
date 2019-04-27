@@ -63,13 +63,13 @@ void Log::Read(log_address address, int length, char *buffer) {
     //check segment cache, if log end does not have the requested segment.
     if((*log_end).GetSegmentNumber() != address.segmentNumber) {
         for (int i = 0; i < sizeof(cache) / sizeof(cache[0]); i++) {
-            if ((*cache[i]).GetSegmentNumber() == address.segmentNumber){
+            if ((*cache[i]).GetSegmentNumber() == address.segmentNumber && (*cache[i]).IsLoaded()){
                 memcpy(buffer, (*cache[i]).data + offsetBytes, length);
                 return;
             }
         }
         
-        //segment not found in segment cache.
+        //segment not found in segment cache. Add the segment to the segment cache.
         (*cache[cache_round_robin]).Load(address.segmentNumber);
         memcpy(buffer, (*cache[cache_round_robin]).data + offsetBytes, length);
         if (cache_round_robin >= (sizeof(cache) / sizeof(cache[0])) - 1){
@@ -80,6 +80,9 @@ void Log::Read(log_address address, int length, char *buffer) {
         return;
     }
     
+    if (!(*log_end).IsLoaded())
+        throw "Log::Read() - Attempting to read from a segment that is not loaded!!";
+
     memcpy(buffer, (*log_end).data + offsetBytes, length);   
 }
 
@@ -98,10 +101,13 @@ void Log::Write(log_address address, int length, char *buffer) {
     /*  Update Log End segment */
     if((*log_end).GetSegmentNumber() != address.segmentNumber) {
         (*log_end).Flush();
-        refreshCache((*log_end).GetSegmentNumber());
+        RefreshCache((*log_end).GetSegmentNumber()); //Refresh cache for old segment should happen before new segment is loaded.
         (*log_end).Load(address.segmentNumber);
     }
     
+    if (!(*log_end).IsLoaded())
+        throw "Log::Write() - Attempting to write to a segment that is not loaded!!";
+
     memcpy((*log_end).data + offsetBytes, buffer, length);
 }
 
@@ -115,10 +121,13 @@ void Log::Free(log_address address){
     /* blocks to be freed should be loaded to main memory */
     if((*log_end).GetSegmentNumber() != address.segmentNumber) {
         (*log_end).Flush();
-        refreshCache((*log_end).GetSegmentNumber());
+        RefreshCache((*log_end).GetSegmentNumber()); //Refresh cache for old segment should happen before new segment is loaded.
         (*log_end).Load(address.segmentNumber);
     }
-    
+
+    if (!(*log_end).IsLoaded())
+        throw "Log::Free() - Attempting to free a segment that is not loaded!!";
+
     memset((*log_end).data + offsetBytes, 0, super_block.bytesPerBlock);
 }
 

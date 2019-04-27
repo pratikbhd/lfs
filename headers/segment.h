@@ -34,6 +34,8 @@ class Segment {
         //Erase the copy of the loaded segment in the flash.
         void Erase();
         unsigned int GetSegmentNumber();
+
+        bool IsLoaded();
 };
 
 //     char* cstring; // raw pointer used as a handle to a dynamically-allocated memory block

@@ -37,6 +37,7 @@ bool File::updateInode(Inode *i, int index, log_address address) {
     block_usage b;
     b.inum = (*i).inum;
     b.use = static_cast<char>(usage::INUSE);
+    b.age = std::time(nullptr);
 
     if(index < 0) {
         return false;
@@ -47,8 +48,8 @@ bool File::updateInode(Inode *i, int index, log_address address) {
         (*i).block_pointers[index] = address;
     } else {
         char data[log.super_block.bytesPerBlock];
-        unsigned int offsetBytes = (index - 4) * sizeof(log_address);
-        if (offsetBytes + sizeof(log_address) > log.super_block.bytesPerBlock)
+        unsigned int offsetBytes = (index - 4) * sizeof(log_address); //(ending index-4 added to account for \0)
+        if (offsetBytes + sizeof(log_address) + 1 > log.super_block.bytesPerBlock)
             throw "Log::UpdateInode - the indirect block pointer data exceeded a block size. Not supported as of now.";
 
         if((*i).indirect_block.segmentNumber > 0) {
@@ -58,10 +59,17 @@ bool File::updateInode(Inode *i, int index, log_address address) {
             (*i).indirect_block = getNewLogEnd();
 
             log_address old = {0,0};
-            memcpy(&old, data+offsetBytes, sizeof(log_address));
+            memcpy(&old, data+offsetBytes, sizeof(log_address)+1);
             log.ResetBlockUsage(old);
         } else {
             (*i).indirect_block = getNewLogEnd();
+            memset(data, 0, sizeof(log.super_block.bytesPerBlock));
+            unsigned int init_offset = 0;
+            log_address default_address = {0,0};
+            while(init_offset + sizeof(log_address) < log.super_block.bytesPerBlock){
+                memcpy((data + init_offset), &default_address, sizeof(log_address));
+                init_offset += sizeof(log_address);
+            }
         }
 
         memcpy((data + offsetBytes), &address, sizeof(log_address));
@@ -226,6 +234,7 @@ void File::checkpoint() {
 
     /* Flush log end to flash */
     (*log.log_end).Flush();
+    (*log.log_end).Load((*log.log_end).GetSegmentNumber());
 
     /* Erase first segment for flash metadata */
     int res = Flash_Erase(log.flash, 0, 1);
