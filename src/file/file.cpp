@@ -432,6 +432,7 @@ int File::ReturnInodeFromBuffer(const char *buf, int length, const char *name, i
 		*inum = num;
 		return 0;
 	}
+
 		// Nothing was found
 	return -ENOENT;
 }
