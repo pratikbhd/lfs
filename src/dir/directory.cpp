@@ -153,8 +153,7 @@ int Directory::directoryReaddir(const char *path,
 
 	struct stat st;
 
-  char buffer[static_cast<unsigned int>(fileLength::LENGTH)],
-				name[256];
+  char name[256];
 
 	Inode dirInode;
 	int error = file.ReadPath(path, &dirInode);
@@ -167,6 +166,7 @@ int Directory::directoryReaddir(const char *path,
 		return -ENOTDIR;
 	}
 
+  char buffer[dirInode.fileSize + 1];
 	st.st_ino = dirInode.inum;
 	file.fileRead(&dirInode, 0, dirInode.fileSize, buffer);
   filler(buf, ".", &st, 0);

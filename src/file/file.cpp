@@ -271,7 +271,7 @@ int File::CreateInode(Inode *inode) {
     std::cout << "[File] Creating a new inode" << std::endl;
 
 	int	i, length;
-	char buffer[GetMaxFileSize()];
+	char buffer[iFile.fileSize + 1];
 	Inode *inodes;
 
 	fileRead(&iFile, 0, iFile.fileSize, buffer);
@@ -318,7 +318,7 @@ int File::ReadPath(const char *path, Inode *inode) {
 	
 	std::cout << "[File] ReadPath: path: " << path << std::endl;	
 	
-	char directory[GetMaxFileSize()], name[static_cast<unsigned int>(fileLength::LENGTH)+1];
+	char name[static_cast<unsigned int>(fileLength::LENGTH)+1];
 	int inum, length, offset, i, error 
 		, pathLength = strlen(path);
 	
@@ -344,6 +344,7 @@ int File::ReadPath(const char *path, Inode *inode) {
 	std::cout << "[File] ReadPath: file read check"<< std::endl;;
 	// Read directory for next part of path. Initially directory is the root
 	offset = 1;
+	char directory[directoryInode.fileSize + 1];
 	length = fileRead(&directoryInode, 0, directoryInode.fileSize, directory);
 	std::cout << "[File] ReadPath: directory is of length: " << length << std::endl;
 	
