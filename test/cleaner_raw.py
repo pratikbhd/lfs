@@ -35,49 +35,70 @@ def main(args):
     if options.mount is None:
         raise Exception("You must use -m to specify a mount point.")
 
-    for index in range(200):
-            print("ITERATION : " + str(index))
-            path = os.path.join(options.mount, "foo")
-            fd = open(path, "w")
-            fd.write("hello")
-            fd.close()
-            fd = open(path, "r")
-            contents = fd.read()
-            fd.close()
-            fd = open(path, "w")
-            fd.write("hello")
-            fd.write("goodbye")
-            fd.close()
-            fd = open(path, "r")
-            contents = fd.read()
-            fd.close()
-            # fd = open(path, "w")
-            # expected = "a" * 3 * 1024
-            # fd.write(expected)
-            # fd.close()
-            # fd = open(path, "r")
-            # contents = fd.read()
-            # fd.close()
-            path1 = os.path.join(options.mount, "foo"+str(index))
-            fd = open(path1, "w")
-            fd.write("hello")
-            fd.close()
-            path2 = os.path.join(options.mount, "bar"+str(index))
+    iterations = 11
+    for index in range(iterations):
+        print("WRITING ITERATION : " + str(index))
+        path = os.path.join(options.mount, "foo")
+        fd = open(path, "w")
+        fd.write("hello")
+        fd.close()
+        fd = open(path, "r")
+        contents = fd.read()
+        print("foo:" + contents)
+        fd.close()
+        fd = open(path, "w")
+        fd.write("hello")
+        fd.write("goodbye")
+        fd.close()
+        fd = open(path, "r")
+        contents = fd.read()
+        print("foo:" + contents)
+        fd.close()
+        path1 = os.path.join(options.mount, "foo" + str(index))
+        fd = open(path1, "w")
+        fd.write("hello")
+        fd.close()
+        path2 = os.path.join(options.mount, "bar" + str(index))
 
-            if index == 38:
-                print("reached 30th iteration!!")
+        if index == 38:
+            print("reached 30th iteration!!")
 
-            fd = open(path2, "w")
-            fd.write("goodbye")
-            fd.close()
-            fd = open(path1, "r")
-            contents1 = fd.read()
-            fd.close()
-            fd = open(path2, "r")
-            contents2 = fd.read()
-            fd.close()
-            print(contents1)
-            print(contents2)
+        fd = open(path2, "w")
+        fd.write("goodbye")
+        fd.close()
+        fd = open(path1, "r")
+        contents1 = fd.read()
+        fd.close()
+        fd = open(path2, "r")
+        contents2 = fd.read()
+        fd.close()
+        print(contents1)
+        print(contents2)
+
+    for index in range(iterations):
+        print("READING ITERATION : " + str(index))
+        path = os.path.join(options.mount, "foo")
+        fd = open(path, "r")
+        contents = fd.read()
+        print("foo:" + contents)
+        fd.close()
+        path1 = os.path.join(options.mount, "foo" + str(index))
+        path2 = os.path.join(options.mount, "bar" + str(index))
+
+        if index == 38:
+            print("reached 30th iteration!!")
+        fd = open(path1, "r")
+        contents1 = fd.read()
+        fd.close()
+        fd = open(path2, "r")
+        contents2 = fd.read()
+        fd.close()
+
+        assert contents1 == "hello"
+        assert contents2 == "goodbye"
+
+        print("foo" + str(index) + ": " + contents1)
+        print("bar" + str(index) + ": " + contents2)
 
 
 if __name__ == '__main__': 

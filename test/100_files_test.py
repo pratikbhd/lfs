@@ -57,7 +57,7 @@ class TestBasic(TestBase):
 
     def test_00_cleaner(self):
         global options
-        for index in range(20):
+        for index in range(100):
             print("ITERATION : " + str(index))
             path = os.path.join(options.mount, "foo")
             fd = open(path, "w")
@@ -73,13 +73,13 @@ class TestBasic(TestBase):
             fd = open(path, "r")
             contents = fd.read()
             fd.close()
-            # fd = open(path, "w")
-            # expected = "a" * 3 * 1024
-            # fd.write(expected)
-            # fd.close()
-            # fd = open(path, "r")
-            # contents = fd.read()
-            # fd.close()
+            fd = open(path, "w")
+            expected = "a" * 3 * 1024
+            fd.write(expected)
+            fd.close()
+            fd = open(path, "r")
+            contents = fd.read()
+            fd.close()
             path1 = os.path.join(options.mount, "foo"+str(index))
             fd = open(path1, "w")
             fd.write("hello")

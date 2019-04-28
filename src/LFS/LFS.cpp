@@ -28,8 +28,8 @@ static int opt = 0;
 #define STOP  "stop"
 
 static struct option long_options[] = {
-    {CACHE, 1, 0, 0},
     {INTERVAL, 1, 0, 0},
+    {CACHE, 1, 0, 0},
     {START, 1, 0, 0},
     {STOP, 1, 0, 0},
     {NULL, 0, NULL, 0}
@@ -46,7 +46,7 @@ static long stop = 8;
 void parse_args (int argc, char **argv)
 {
     int option_index = 0;
-    while ((opt = getopt_long(argc, argv, "s:i:c:C:",long_options, &option_index)) != -1) {
+    while ((opt = getopt_long(argc, argv, "i:c:s:S:",long_options, &option_index)) != -1) {
         switch (opt) {
             case 0:
                 printf ("option %s", long_options[option_index].name);
@@ -67,11 +67,6 @@ void parse_args (int argc, char **argv)
                 }
                 printf ("\n");
                 break;
-
-            case 's':
-                printf("arg s with arg %s\n", optarg);
-                cache = atol(optarg);
-                break;
             
             case 'i':
                 printf("arg i with arg %s\n", optarg);
@@ -80,11 +75,16 @@ void parse_args (int argc, char **argv)
             
             case 'c':
                 printf("arg c with arg %s\n", optarg);
+                cache = atol(optarg);
+                break;
+
+            case 's':
+                printf("arg s with arg %s\n", optarg);
                 start = atol(optarg);
                 break;
             
-            case 'C':
-                printf("arg C with arg %s\n", optarg);
+            case 'S':
+                printf("arg S with arg %s\n", optarg);
                 stop = atol(optarg);
                 break;
 
@@ -154,19 +154,18 @@ int main(int argc, char *argv[])
     flash_file = argv[argc-2];
     parse_args(argc, argv);
 
-    static long cache = 8;
-    static long interval = 1000;
-    static long start = 4;
-    static long stop = 8;
-
     inputState state = inputState();
     state.lfsFile = flash_file;
     state.interval = interval;
+    state.cacheSize = cache;
     state.startCleaner = start;
     state.stopCleaner = stop;
 
     std::cout << "[LFS] lfs file: " << state.lfsFile << std::endl;
     std::cout << "[LFS] interval: " << state.interval << std::endl;
+    std::cout << "[LFS] cacheSize: " << state.cacheSize << std::endl;
+    std::cout << "[LFS] startCleaner: " << state.startCleaner << std::endl;
+    std::cout << "[LFS] stopCleaner: " << state.stopCleaner << std::endl;
 
     // Directory directory = Directory((char*)state.lfsFile.c_str());
 
