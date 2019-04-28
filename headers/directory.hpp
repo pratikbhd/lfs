@@ -44,6 +44,11 @@ class Directory {
 		int directoryReaddir(const char *path, void *buf, fuse_fill_dir_t filler,
 			off_t offset, struct fuse_file_info *fi);
 
+		/**
+ 		* Finds the first item found in the directory. inum will point to the inode number, name to the
+		* file name, and newOffset to the point in directory where the next entry begins. name should be
+ 		* buffer of size at least NAME_MAX_LENGTH+1.
+ 		*/
 		int innerReadDir(char *, int *, char *, int *);
 
 		int CountInodes();
@@ -54,5 +59,60 @@ class Directory {
 		int Exists(const char * path);
 
 		int Statfs(const char *path, struct statvfs *stbuf);
+
+		/**
+ 		* Link functions
+ 		*/
+
+		/**
+		 * Creates a file with path <*from> which links to the same file as <*to>.
+		 */
+		int createHardLink(const char *to, const char *from);
+
+		/**
+		 * Creates a symbolic link at <*from> with contents <*to>
+		 */
+		int createSymLink (const char *to, const char *from);
+
+		/**
+ 		* Opens the symbolic link <*path> and stores the path of the linked file in <*buf>.
+ 		*/
+		int readLink(const char *path, char *buf, size_t bufsize);
+
+		/**
+ 		* Removes <*name> from its directory, and decrements the hardlink count of the files inode. If the count is 0, then
+ 		* the file is deleted from the log using File_Delete.
+ 		*/
+		int unlink(const char *name);
+
+		/**
+ 		* Copies all of <path> except for the last link into a fresh buffer pointed to by <*parentPath> with terminating null byte.
+ 		* The contents following are stored in <*child>, stripped of all '/' characters. Space is allocated for both using malloc
+ 		* and should be freed by the caller. The length of parentPath is returned upon success. Otherwise, a negative number indicates
+ 		* an error
+ 		*/
+		int splitPathAtEnd(const char *path, char *parentPath, char *child);
+
+		/**
+		* Delete functions
+		*/
+
+		/**
+		* Removes the directory <path>. If this directory is not empty, removeDirectory fails and returns -ENOTEMPTY.
+   		* If it is not a directory, removeDirectory fails and returns -ENOTDIR. Otherwise, the directory is deleted
+		* and 0 is returned.
+		*/
+		int removeDirectory(const char * path);
+
+		/**
+ 		* Removes the file named <name> associated with <ino> from the directory <dir>.
+ 		* The inodes are updated in the log.
+ 		*/
+		int deleteEntry(Inode *dir, Inode *ino, const char *name);
+
+		/**
+ 		* Renames the entry <from> with the name <to>
+ 		*/
+		int rename(const char *from, const char *to);
 
 };

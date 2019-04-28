@@ -35,7 +35,7 @@ int File::fileWrite(Inode *inode, int offset, int length, const void *buffer) {
 		std::cout << "[File] fileWrite: offset: " << offset << " length: " << length << " greater than max size: " << GetMaxFileSize() << std::endl;
         return -1;
     }
-    
+
     // Read whole file
     std::cout << "[File] Maximum Size: " << log.super_block.bytesPerBlock*4 << std::endl;
     std::cout << "[File] size: " << GetMaxFileSize() << std::endl;
@@ -51,11 +51,11 @@ int File::fileWrite(Inode *inode, int offset, int length, const void *buffer) {
         writeOffset+=log.super_block.bytesPerBlock;
         writeIndex++;
 	}
-    
+
    	if (offset > inode->fileSize) { // Fill holes
 		memset(data+inode->fileSize, 0, offset - inode->fileSize);
-	}	
-    
+	}
+
     // write
     std::cout << "[File] Data:" << data << std::endl;
     std::cout << "[File] Data+offset:" << data+offset << std::endl;
@@ -243,6 +243,7 @@ int File::fileCreate(const char *path, mode_t mode, struct fuse_file_info *fi) {
  		std::cout << "[File] FileCreate: Mode = " << mode << std::endl;
 		std::cout << "[File] FileCreate: inum = " << inode.inum << std::endl;
 
+		inode.hardLinkCount = 1;
 		length = strlen(path);
 		error = ReadPath(parent, &directory);
 
@@ -332,7 +333,7 @@ int File::ReadPath(const char *path, Inode *inode) {
 	Inode directoryInode = ReturnInode(static_cast<char>(reserved_inum::ROOT));
 	
 	std::cout << "[File] ReadPath: path 1 check"<< std::endl;;
-	// Check if the path is just the root
+	// Check if the path is jinuust the root
 	if (path[1] == '\0') {
 		std::cout << "[File] Read path on directory: " << path <<  std::endl;
 		std::cout << "[File] Root->inum = " <<  directoryInode.inum << " , length = " << directoryInode.fileSize << std::endl;
@@ -365,7 +366,11 @@ int File::ReadPath(const char *path, Inode *inode) {
 
 		std::cout << "[File] ReadPath: getting inode for: " << name << std::endl;
 		
+		std::cout << "[File] Reading directory: " << directory << "length: " << length << "Name: " << name << "Inum: " << inum << std::endl;
+
 		error = ReturnInodeFromBuffer(directory, length, name, &inum);
+
+		std::cout << "[File] Reading directory: " << directory << "length: " << length << "Name: " << name << "Inum: " << inum << std::endl;
 		
 		if (error) {
 			std::cout << "[File] ReadPath: Could not follow path: " << path << " Failed to read: " << name << std::endl;
@@ -427,8 +432,8 @@ int File::ReturnInodeFromBuffer(const char *buf, int length, const char *name, i
 		*inum = num;
 		return 0;
 	}
-	
-	// Nothing was found
+
+		// Nothing was found
 	return -ENOENT;
 }
 
@@ -586,6 +591,49 @@ int File::fileGetattr(const char *path, struct stat *stbuf) {
 	stbuf->st_mode |= S_IRWXO;
 
 	std::cout << "[File] Leaving getAttr" << std::endl;
+	return 0;
+}
+
+
+int File::fileDelete(Inode *ino) {
+	int err = Truncate(ino, 0);
+
+	if (err) {
+		std::cout << "fileDelete: Error " << strerror(err) << " truncating file with inum " << ino->inum << "\n" << std::endl;
+		return err;
+	}
+
+	ToggleInumUsage(ino->inum);
+	resetInode(ino);
+
+	return 0;
+}
+
+// TODO: Consult about this with Rahul
+int File::resetInode(Inode *inode) {
+
+	std::cout << "resetInode\n" << std::endl;
+	int i;
+	inode->fileSize = 0;
+
+	for (i = 0; i < 4; i++) {
+		inode->block_pointers[i].segmentNumber = 0;
+		inode->block_pointers[i].blockOffset = 0;
+	}
+    inode->indirect_block.segmentNumber = 0;
+    inode->indirect_block.blockOffset = 0;
+
+	inode->hardLinkCount = 0;
+	inode->fileType = static_cast<char>(fileTypes::NO_FILE);
+	writeInode(inode);
+
+	return 0;
+}
+
+int File::writeInode(Inode *inode) {
+
+	std::cout << "writeInode, size = " << inode->fileSize << "\n" << std::endl;	
+	fileWrite(&iFile, inode->inum * sizeof(Inode), sizeof(Inode), inode);
 	return 0;
 }
 
