@@ -91,6 +91,20 @@ int c_access(const char* path, int mask){
     return directory->Exists(path);
 }
 
+int c_Chown(const char *path, uid_t uid, gid_t gid) {
+    Color::Modifier red(Color::FG_RED);
+    Color::Modifier def(Color::FG_DEFAULT);
+    std::cout << red <<"[LFS] Chown called: stub only"<< def <<std::endl;
+    return 0;
+}
+
+int c_Utimens(const char *path, const struct timespec ts[2]) {
+    Color::Modifier red(Color::FG_RED);
+    Color::Modifier def(Color::FG_DEFAULT);
+    std::cout << red <<"[LFS] Utimens called: stub only"<< def <<std::endl;
+    return 0;
+}
+
 int c_File_Release(const char *path, struct fuse_file_info *fi) {
     Color::Modifier red(Color::FG_RED);
     Color::Modifier def(Color::FG_DEFAULT);
@@ -134,16 +148,16 @@ int c_ReadLink(const char *path, char *buf, size_t bufsize){
 }
 
 int c_Unlink(const char *path){
-    Color::Modifier red(Color::FG_RED);
+    Color::Modifier green(Color::FG_GREEN);
     Color::Modifier def(Color::FG_DEFAULT);
-    std::cout << red <<"[LFS] Unlink called: stub only"<< def<< std::endl;
+    std::cout << green <<"[LFS] Unlink: Implemented"<< def<< std::endl;
     return directory->unlink(path);
 }
 
 int c_Rmdir(const char *path) {
-    Color::Modifier red(Color::FG_RED);
+    Color::Modifier green(Color::FG_GREEN);
     Color::Modifier def(Color::FG_DEFAULT);
-    std::cout << red <<"[LFS] Remove Directory called: stub only"<< def<< std::endl;
+    std::cout << green <<"[LFS] Remove Directory: Implemented"<< def<< std::endl;
     return directory->removeDirectory(path);
 }
 

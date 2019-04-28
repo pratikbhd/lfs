@@ -56,7 +56,10 @@ int c_SymLink(const char *file, const char *sym);
 int c_ReadLink(const char *path, char *buf, size_t bufsize);
 int c_Unlink(const char *path);
 int c_Rmdir(const char *path);
+int c_Chown(const char *path, uid_t uid, gid_t gid);
+int c_Utimens(const char *path, const struct timespec ts[2]);
 int c_Rename(const char *from, const char *to);
+
 
 #ifdef __cplusplus
 } // extern "C"
