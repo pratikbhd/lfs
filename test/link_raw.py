@@ -35,12 +35,16 @@ def main(args):
     if options.mount is None:
         raise Exception("You must use -m to specify a mount point.")
 
-    path = os.path.join(options.mount, "foo")
-    fd = open(path, "w")
-    fd.write("hello")
-    fd.close()
-    linkpath = os.path.join(options.mount, "bar")
-    os.link(path, linkpath)
+    path = os.path.join(options.mount, "testDir")
+    # fd = open(path, "w")
+    # fd.write("hello")
+    # fd.close()
+    os.mkdir(path)
+    os.rmdir(path)
+    # linkpath = os.path.join(options.mount, "bar")
+    # os.link(path, linkpath)
+    # os.unlink(path)
+
 
 if __name__ == '__main__': 
     main(sys.argv)
