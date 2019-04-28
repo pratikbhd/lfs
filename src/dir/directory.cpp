@@ -371,7 +371,7 @@ int Directory::readLink(const char *path, char *buf, size_t bufsize) {
 	return 0;
 }
 
-int Directory::splitPathAtEnd(const char *path, char **prefix, char **child) {
+int Directory::splitPathAtEnd(const char *path, char *prefix, char *child) {
 	int length = strlen(path);
 	int i, j;
 
@@ -383,19 +383,19 @@ int Directory::splitPathAtEnd(const char *path, char **prefix, char **child) {
 	}
 
 	char prefixTmp[i+1], childTmp[static_cast<unsigned int>(fileLength::LENGTH)];
-	memcpy(*prefix, prefixTmp, i+1);
-	memcpy(*child, childTmp, static_cast<unsigned int>(fileLength::LENGTH));
+	memcpy(prefix, prefixTmp, i+1);
+	memcpy(child, childTmp, static_cast<unsigned int>(fileLength::LENGTH));
 	
 	for (j = 0; j < i; j++) {
-		(*prefix)[j] = path[j];
+		(prefix)[j] = path[j];
 	} 
 
-	(*prefix)[j] = '\0';
+	(prefix)[j] = '\0';
 	
 	// If the prefix is the root
 	if (i == 0) {
-		(*prefix)[0] = '/';
-		(*prefix)[1] = '\0';
+		(prefix)[0] = '/';
+		(prefix)[1] = '\0';
 	}
 
 	// Get rid of terminating '/'
@@ -403,10 +403,10 @@ int Directory::splitPathAtEnd(const char *path, char **prefix, char **child) {
 		length--;
 
 	for (i = 0, j++; j < length && i < static_cast<unsigned int>(fileLength::LENGTH); j++, i++) {
-		(*child)[i] = path[j];
+		(child)[i] = path[j];
 	} 
 	
-	(*child)[i] = '\0';
+	(child)[i] = '\0';
 	
 	std::cout << "splitPathAtEnd: path " << path << " parent " << *prefix << " child " << *child << "\n" << std::endl;
 	return j;
@@ -415,7 +415,7 @@ int Directory::splitPathAtEnd(const char *path, char **prefix, char **child) {
 int Directory::removeDirectory(const char *path) {
 
 	Inode dir, parDir;
-	char *parent, *name;
+	char parent[static_cast<unsigned int>(fileLength::LENGTH)], name[static_cast<unsigned int>(fileLength::LENGTH)];
 
 	// Should not be able to remove the root directory
 	if (strcmp(path, "/") == 0) {
@@ -439,7 +439,7 @@ int Directory::removeDirectory(const char *path) {
 		return -ENOTEMPTY;
 	}
 
-	splitPathAtEnd(path, &parent, &name);
+	splitPathAtEnd(path, parent, name);
 
 	err = file.ReadPath(parent, &parDir);
 
@@ -509,9 +509,9 @@ int Directory::deleteEntry(Inode *dir, Inode *ino, const char *name) {
 int Directory::unlink(const char *path) {
 	Inode inode, dir;
 
-	char *name, *prefix;
+	char name[static_cast<unsigned int>(fileLength::LENGTH)], prefix[static_cast<unsigned int>(fileLength::LENGTH)];
 
-	splitPathAtEnd(path, &prefix, &name);
+	splitPathAtEnd(path, prefix, name);
   
 	int err = file.ReadPath(path, &inode);
 
@@ -544,14 +544,14 @@ int Directory::unlink(const char *path) {
 }
 
 int Directory::rename(const char *from, const char *to) {
-	char *fDirPath, *fName, *tDirPath, *tName;
+	char fDirPath[static_cast<unsigned int>(fileLength::LENGTH)], fName[static_cast<unsigned int>(fileLength::LENGTH)], tDirPath[static_cast<unsigned int>(fileLength::LENGTH)], tName[static_cast<unsigned int>(fileLength::LENGTH)];
 
 	Inode fDir, tDir, ino, tino;
 
 	int err;
 
-	splitPathAtEnd(from, &fDirPath, &fName);
-	splitPathAtEnd(to, &tDirPath, &tName);
+	splitPathAtEnd(from, fDirPath, fName);
+	splitPathAtEnd(to, tDirPath, tName);
 
 	std::cout << "Directory Rename:\n\tFrom: " << from << "\n\tParent: " << fDirPath << "\n\tName: " << fName << "\n\tTo: " << to << "\n\tParent: " << tDirPath << "\n\tName: " << tName << "\n" << std::endl;
 

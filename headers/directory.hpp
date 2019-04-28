@@ -91,7 +91,7 @@ class Directory {
  		* and should be freed by the caller. The length of parentPath is returned upon success. Otherwise, a negative number indicates
  		* an error
  		*/
-		int splitPathAtEnd(const char *path, char **parentPath, char **child);
+		int splitPathAtEnd(const char *path, char *parentPath, char *child);
 
 		/**
 		* Delete functions
