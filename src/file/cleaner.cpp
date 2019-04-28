@@ -87,7 +87,7 @@ bool File::selectSegments(int segmentsToFree){
 
         std::sort(ratios, ratios + (log.super_block.segmentCount-1),
           [](CostBenefit const & a, CostBenefit const & b) -> bool
-          { return a.score < b.score; } );
+          { return a.score > b.score; } );
 
         std::vector<unsigned int> selected;
         for (int i = 0; i<segmentsToFree; i++){
