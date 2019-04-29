@@ -24,7 +24,7 @@ log_address File::getNewLogEnd(){
     }
 
     if (log.Log_end_address.segmentNumber != finder.segmentNumber){
-        operation_count = max_operations; //force the checkpoint block to flash
+        segments_done++;
         log.super_block.usedSegments++;
     }
 
@@ -213,8 +213,7 @@ bool File::write(Inode *target, unsigned int blockNumber, int length, const char
 }
 
 void File::checkpoint() {
-    operation_count++;
-    if(operation_count < max_operations) {
+    if(segments_done < max_interval) {
         return;
     }
 
@@ -261,5 +260,5 @@ void File::checkpoint() {
         return;
     }
 
-    operation_count = 0;
+    segments_done = 0;
 }

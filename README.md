@@ -9,6 +9,7 @@
     * OPTIONAL:
         * fileWrite -> Data array can be length + offset
 * Log layer
+    * get next log end only if entire segment is free. 
     * TESTING DONE:
         * segment caching
         * tested writing 200+ files to iFile.

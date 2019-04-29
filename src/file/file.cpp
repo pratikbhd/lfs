@@ -15,6 +15,7 @@ char convertMode(mode_t mode);
 
 File::File(inputState i_state) {
 	state = i_state;
+	max_interval = i_state.interval;
     log = Log();
     unsigned int blocks;
     log.flash = Flash_Open(state.lfsFile, 0, &blocks); // TODO: Get the filename in state->lfsfile (char* format)
@@ -643,7 +644,7 @@ void File::Flush(){
 	//reload log end after flushing it.
 	(*log.log_end).Load((*log.log_end).GetSegmentNumber());
 	log.RefreshCache((*log.log_end).GetSegmentNumber());
-    operation_count = max_operations;
+    segments_done = max_interval;
     checkpoint();
 }
 

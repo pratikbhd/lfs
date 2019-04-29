@@ -18,8 +18,8 @@ class File {
         bool clean();
 
         // file layer private functions
-        unsigned int operation_count;
-        unsigned int max_operations = 1000;
+        unsigned int segments_done;
+        unsigned int max_interval;
         //Get the iFile from the flash.
         void getiFile();
         //Get next available free block at the log end.
