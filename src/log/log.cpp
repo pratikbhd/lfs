@@ -58,7 +58,7 @@ block_usage Log::GetBlockUsage(log_address address) {
 void Log::Read(log_address address, int length, char *buffer) {
     unsigned int offsetBytes = super_block.bytesPerBlock * address.blockOffset;
     if (offsetBytes + length > super_block.bytesPerSegment)
-        throw "Log::Read() - Cannot read more than a segment! - " + std::to_string(offsetBytes + length);
+        throw std::runtime_error("Log::Read() - Cannot read more than a segment! - " + std::to_string(offsetBytes + length));
 
     //check segment cache, if log end does not have the requested segment.
     if((*log_end).GetSegmentNumber() != address.segmentNumber) {
@@ -81,7 +81,7 @@ void Log::Read(log_address address, int length, char *buffer) {
     }
     
     if (!(*log_end).IsLoaded())
-        throw "Log::Read() - Attempting to read from a segment that is not loaded!!";
+        throw std::runtime_error("Log::Read() - Attempting to read from a segment that is not loaded!!");
 
     memcpy(buffer, (*log_end).data + offsetBytes, length);   
 }
@@ -89,7 +89,7 @@ void Log::Read(log_address address, int length, char *buffer) {
 void Log::Write(log_address address, int length, char *buffer) {
     unsigned int offsetBytes = super_block.bytesPerBlock * address.blockOffset;
     if (offsetBytes + length > super_block.bytesPerSegment)
-        throw "Log::Write() - Cannot write more than a segment! - " + std::to_string(offsetBytes + length);
+        throw std::runtime_error("Log::Write() - Cannot write more than a segment! - " + std::to_string(offsetBytes + length));
 
     //TODO handle Block wear.
     unsigned int w = 0;
@@ -106,7 +106,7 @@ void Log::Write(log_address address, int length, char *buffer) {
     }
     
     if (!(*log_end).IsLoaded())
-        throw "Log::Write() - Attempting to write to a segment that is not loaded!!";
+        throw std::runtime_error("Log::Write() - Attempting to write to a segment that is not loaded!!");
 
     memcpy((*log_end).data + offsetBytes, buffer, length);
 }
@@ -114,7 +114,7 @@ void Log::Write(log_address address, int length, char *buffer) {
 void Log::Free(log_address address){
     unsigned int offsetBytes = super_block.bytesPerBlock * address.blockOffset;
     if (offsetBytes + super_block.bytesPerBlock > super_block.bytesPerSegment)
-        throw "Log::Free() - block offset is out of bounds of segment! - " + std::to_string(address.blockOffset);
+        throw std::runtime_error("Log::Free() - block offset is out of bounds of segment! - " + std::to_string(address.blockOffset));
 
     ResetBlockUsage(address);
 
@@ -126,7 +126,7 @@ void Log::Free(log_address address){
     }
 
     if (!(*log_end).IsLoaded())
-        throw "Log::Free() - Attempting to free a segment that is not loaded!!";
+        throw std::runtime_error("Log::Free() - Attempting to free a segment that is not loaded!!");
 
     memset((*log_end).data + offsetBytes, 0, super_block.bytesPerBlock);
 }

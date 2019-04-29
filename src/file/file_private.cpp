@@ -50,7 +50,7 @@ bool File::updateInode(Inode *i, int index, log_address address) {
         char data[log.super_block.bytesPerBlock];
         unsigned int offsetBytes = (index - 4) * sizeof(log_address); //(ending index-4 added to account for \0)
         if (offsetBytes + sizeof(log_address) + 1 > log.super_block.bytesPerBlock)
-            throw "Log::UpdateInode - the indirect block pointer data exceeded a block size. Not supported as of now.";
+            throw std::runtime_error("Log::UpdateInode - the indirect block pointer data exceeded a block size. Not supported as of now.");
 
         if((*i).indirect_block.segmentNumber > 0) {
             log.Read((*i).indirect_block, log.super_block.bytesPerBlock, data);
@@ -88,7 +88,7 @@ bool File::write(Inode *target, unsigned int blockNumber, int length, const char
     int max_block_pointers = 4 + (log.super_block.bytesPerBlock/sizeof(log_address));
     
     if (length > ((log.super_block.bytesPerBlock)*max_block_pointers)) {
-        throw "[File_Private] Log::Write() - File length exceeds the maximum permitted file size!";
+        throw std::runtime_error("[File_Private] Log::Write() - File length exceeds the maximum permitted file size!");
     }
 
 	std::cout << "[File_Private] Write Enter ==> length: "<< length <<", file size: "<< (*target).fileSize << ", in->inum: " << (*target).inum << std::endl;
@@ -102,7 +102,7 @@ bool File::write(Inode *target, unsigned int blockNumber, int length, const char
     /* Do the write one block at a time.*/
 	int i = 0; // Buffer offset, number of blocks
     while (length > 0) {
-        if (blockNumber > max_block_pointers) throw "[File_Private] Log::Write() - File block numbers exceeds the maximum permitted file size!";
+        if (blockNumber > max_block_pointers) throw std::runtime_error("[File_Private] Log::Write() - File block numbers exceeds the maximum permitted file size!");
 
         // get new log end address
         log_address address = getNewLogEnd();

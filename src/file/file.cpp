@@ -652,7 +652,7 @@ log_address File::GetLogAddress(Inode i, int index) {
     log_address address = {0, 0};
 
     if(index < 0) {
-        throw "Log::GetLogAddress() - Invalid index for block pointer. Index is negative.";
+        throw std::runtime_error("Log::GetLogAddress() - Invalid index for block pointer. Index is negative.");
     } else if(index < 4) {
         if(i.block_pointers[index].segmentNumber > 0) {
             return i.block_pointers[index];
@@ -662,7 +662,7 @@ log_address File::GetLogAddress(Inode i, int index) {
             char data[log.super_block.bytesPerBlock];
             unsigned int offsetBytes = (index - 4) * sizeof(log_address);
             if (offsetBytes + sizeof(log_address) > log.super_block.bytesPerBlock)
-                throw "Log::GetLogAddress() - the index specified references block pointer data that exceeds a block size. Not supported as of now.";
+                throw std::runtime_error("Log::GetLogAddress() - the index specified references block pointer data that exceeds a block size. Not supported as of now.");
 
             log.Read(i.indirect_block, log.super_block.bytesPerBlock, data);
             memcpy(&address, (data + offsetBytes), sizeof(log_address));
