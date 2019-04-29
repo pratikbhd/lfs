@@ -40,24 +40,44 @@ bool Log::ResetBlockUsage(log_address address){
 
 
 log_address Log::GetNextFreeBlock(log_address current){
-
     if (current.segmentNumber == 0) {
         current.segmentNumber = 1; 
     }
-
     if(current.blockOffset+1 >= super_block.blocksPerSegment) {
         current.blockOffset = SummaryBlockSize();
-        current.segmentNumber = current.segmentNumber + 1;
+        current.segmentNumber = getNextFreeSegment(current.segmentNumber);
     } else {
         current.blockOffset = current.blockOffset + 1;
         current.segmentNumber = current.segmentNumber;
     }
-
-    if(current.segmentNumber >= super_block.segmentCount) {
-        current.segmentNumber = 1;
-        current.blockOffset   = SummaryBlockSize();
-    }
     return current;
+}
+
+unsigned int Log::getNextFreeSegment(unsigned int segmentNumber){
+        log_address finder = {segmentNumber +1, SummaryBlockSize()};
+
+        if (finder.segmentNumber >= super_block.segmentCount) {
+            finder.segmentNumber = 1;
+        }
+        
+        while(finder.segmentNumber != segmentNumber) {
+            bool freeSegment = true;
+            while (finder.blockOffset < super_block.blocksPerSegment && freeSegment) {
+                block_usage b = GetBlockUsage(finder);
+                if (b.use == static_cast<char>(usage::INUSE)){
+                    freeSegment = false;
+                }
+                finder.blockOffset++;
+            }
+
+            if (freeSegment) return finder.segmentNumber;
+            else {
+                if (finder.segmentNumber >= super_block.segmentCount -1) finder.segmentNumber = 1;
+                else finder.segmentNumber++;
+            }
+        }
+
+        if(finder.segmentNumber == segmentNumber) throw "[LOG] FLASH is FULL, no free segments available";
 }
 
 int Log::GetUsedBlockCount(){

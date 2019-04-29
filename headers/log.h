@@ -17,6 +17,7 @@ struct inputState{
 class Log {
     private:
         unsigned int summaryBlockBytes();
+        unsigned int getNextFreeSegment(unsigned int segmentNumber);
     public:
         //log address of the current log end.
         log_address Log_end_address;
