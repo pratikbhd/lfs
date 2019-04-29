@@ -91,6 +91,42 @@ int c_access(const char* path, int mask){
     return directory->Exists(path);
 }
 
+int c_HardLink(const char *to, const char *from) {
+    std::cout <<"[LFS] Hardlink called: implemented" << std::endl;
+	return directory->createHardLink(to, from);
+}
+
+int c_SymLink(const char *to, const char *sym) {
+    std::cout <<"[LFS] Symlink called: implemented" << std::endl;
+    return directory->createSymLink(to, sym);
+}
+
+int c_ReadLink(const char *path, char *buf, size_t bufsize){
+    std::cout <<"[LFS] Readlink called: implemented" << std::endl;
+    return directory->readLink(path, buf, bufsize);
+}
+
+int c_Unlink(const char *path){
+    Color::Modifier green(Color::FG_GREEN);
+    Color::Modifier def(Color::FG_DEFAULT);
+    std::cout << green <<"[LFS] Unlink: Implemented"<< def<< std::endl;
+    return directory->unlink(path);
+}
+
+int c_Rmdir(const char *path) {
+    Color::Modifier green(Color::FG_GREEN);
+    Color::Modifier def(Color::FG_DEFAULT);
+    std::cout << green <<"[LFS] Remove Directory: Implemented"<< def<< std::endl;
+    return directory->removeDirectory(path);
+}
+
+int c_Rename(const char *from, const char *to){
+    Color::Modifier red(Color::FG_GREEN);
+    Color::Modifier def(Color::FG_DEFAULT);
+    std::cout << red <<"[LFS] Rename called: implemented"<< def<< std::endl;
+    return directory->rename(from, to);
+}
+
 int c_Chown(const char *path, uid_t uid, gid_t gid) {
     Color::Modifier red(Color::FG_RED);
     Color::Modifier def(Color::FG_DEFAULT);
@@ -124,47 +160,4 @@ int c_Flush(const char *path, struct fuse_file_info *fi) {
     Color::Modifier def(Color::FG_DEFAULT);
     std::cout << red <<"[LFS] Flush called: stub only"<< std::endl;
     return 0;
-}
-
-int c_HardLink(const char *to, const char *from) {
-    Color::Modifier red(Color::FG_RED);
-    Color::Modifier def(Color::FG_DEFAULT);
-    std::cout << red <<"[LFS] Hardlink called: stub only"<< def<< std::endl;
-	return directory->createHardLink(to, from);
-}
-
-int c_SymLink(const char *to, const char *sym) {
-    Color::Modifier red(Color::FG_RED);
-    Color::Modifier def(Color::FG_DEFAULT);
-    std::cout << red <<"[LFS] Symlink called: stub only"<< def<< std::endl;
-    return directory->createSymLink(to, sym);
-}
-
-int c_ReadLink(const char *path, char *buf, size_t bufsize){
-    Color::Modifier red(Color::FG_RED);
-    Color::Modifier def(Color::FG_DEFAULT);
-    std::cout << red <<"[LFS] Readlink called: stub only"<< def<< std::endl;
-    return directory->readLink(path, buf, bufsize);
-}
-
-int c_Unlink(const char *path){
-    Color::Modifier green(Color::FG_GREEN);
-    Color::Modifier def(Color::FG_DEFAULT);
-    std::cout << green <<"[LFS] Unlink: Implemented"<< def<< std::endl;
-    return directory->unlink(path);
-}
-
-int c_Rmdir(const char *path) {
-    Color::Modifier green(Color::FG_GREEN);
-    Color::Modifier def(Color::FG_DEFAULT);
-    std::cout << green <<"[LFS] Remove Directory: Implemented"<< def<< std::endl;
-    return directory->removeDirectory(path);
-}
-
-int c_Rename(const char *from, const char *to){
-    Color::Modifier red(Color::FG_RED);
-    Color::Modifier def(Color::FG_DEFAULT);
-    std::cout << red <<"[LFS] Rename called: stub only"<< def<< std::endl;
-    return directory->rename(from, to);
-
 }

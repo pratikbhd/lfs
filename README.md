@@ -1,19 +1,19 @@
 # TODO
 
+* Crash recovery
 * File Layer
-    FATAL BUGS:
-        ls does not work on folder with 5+ files -> exception thrown in directory layer.
-        truncate larger test case fails in lfstest.py
-    OPTIONAL:
-    * fileWrite -> Data array can be length + offset
+    * permissions
+    * include file modified time in inode and getattr
+    * FATAL BUGS:
+        * truncate larger test case fails in lfstest.py
+    * OPTIONAL:
+        * fileWrite -> Data array can be length + offset
 * Log layer
-    TESTING PENDING:
-        * segment cleaner
-    TESTING DONE:
+    * TESTING DONE:
         * segment caching
         * tested writing 200+ files to iFile.
-    OPTIONAL:
-    * moving checkpoints
+    * OPTIONAL:
+        * moving checkpoints
 
 # Log Structured File System in C++
 
