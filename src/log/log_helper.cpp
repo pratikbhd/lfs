@@ -54,7 +54,7 @@ log_address Log::GetNextFreeBlock(log_address current){
 }
 
 unsigned int Log::getNextFreeSegment(unsigned int segmentNumber){
-        log_address finder = {segmentNumber +1, SummaryBlockSize()};
+        log_address finder = {segmentNumber +1, 0};
 
         if (finder.segmentNumber >= super_block.segmentCount) {
             finder.segmentNumber = 1;
@@ -62,6 +62,7 @@ unsigned int Log::getNextFreeSegment(unsigned int segmentNumber){
         
         while(finder.segmentNumber != segmentNumber) {
             bool freeSegment = true;
+            finder.blockOffset = SummaryBlockSize();
             while (finder.blockOffset < super_block.blocksPerSegment && freeSegment) {
                 block_usage b = GetBlockUsage(finder);
                 if (b.use == static_cast<char>(usage::INUSE)){
@@ -77,7 +78,7 @@ unsigned int Log::getNextFreeSegment(unsigned int segmentNumber){
             }
         }
 
-        if(finder.segmentNumber == segmentNumber) throw "[LOG] FLASH is FULL, no free segments available";
+        if(finder.segmentNumber == segmentNumber) throw std::runtime_error("[LOG] FLASH is FULL, no free segments available");
 }
 
 int Log::GetUsedBlockCount(){
