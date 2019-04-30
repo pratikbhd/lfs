@@ -231,8 +231,6 @@ int Directory::Truncate(const char *path, off_t size) {
 }
 
 int Directory::Statfs(const char *path, struct statvfs *stbuf) {
-
-	//TODO right now just filling dummy values
 	memset(stbuf, 0, sizeof(struct statvfs));
 	stbuf->f_bsize = file.log.super_block.bytesPerBlock;
 	stbuf->f_blocks = file.log.super_block.blockCount;
