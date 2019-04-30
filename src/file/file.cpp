@@ -538,7 +538,8 @@ int File::Truncate(Inode *inode, off_t size) {
 		fileWrite(&iFile, inode->inum * sizeof(Inode), sizeof(Inode), inode);
 
 	} else if (inode->fileSize < size) {
-		char buffer[size - inode->fileSize]; // buffer of 0's to fill out file
+		char buffer[size - inode->fileSize]; 
+		memset(buffer, 0, sizeof(buffer)); // buffer of 0's to fill out file
 		fileWrite(inode, inode->fileSize, size - inode->fileSize, buffer);
 	} // else size == fileSize, do nothing.
 
