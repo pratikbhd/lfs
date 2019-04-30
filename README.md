@@ -6,11 +6,6 @@
     * include file modified time in inode and getattr
     * FATAL BUGS:
         * truncate larger test case fails in lfstest.py
-    * OPTIONAL:
-        * fileWrite -> Data array can be length + offset
-* Log layer
-    * OPTIONAL:
-        * moving checkpoints
 
 # Log Structured File System in C++
 
