@@ -56,13 +56,13 @@ This design document describes our implementation of the Log Structured File Sys
 
 ### Log Layer
 
-The log layer encapsulated by a Log object directly manages the flash device and acts as an interface between the flash device and higher up layers of the LFS. The flash layer is made up of a predefined number of sectors, fixed size of which are collectively considered to form a block. The log layer treats a collection of blocks in the flash layer as a segment. Read-write to and from the flash layer is executed in units of segments. The log layer further supports accessing blocks within a segment by a log address comprising of a segment number and block number. \par
+The log layer encapsulated by a Log object directly manages the flash device and acts as an interface between the flash device and higher up layers of the LFS. The flash layer is made up of a predefined number of sectors, fixed size of which are collectively considered to form a block. The log layer treats a collection of blocks in the flash layer as a segment. Read-write to and from the flash layer is executed in units of segments. The log layer further supports accessing blocks within a segment by a log address comprising of a segment number and block number. 
 
-The Log object holds the last segment to which data is written to in an in-memory class member Segment object called log\_end. The segment object encapsulates functionality at the segment level such as Load, Flush and Erase segment. The log end segment in the log object is flushed to cache once a checkpoint is hit or if write operations exceed the segment size or if the file layer requests for a new segment.\par
+The Log object holds the last segment to which data is written to in an in-memory class member Segment object called log\_end. The segment object encapsulates functionality at the segment level such as Load, Flush and Erase segment. The log end segment in the log object is flushed to cache once a checkpoint is hit or if write operations exceed the segment size or if the file layer requests for a new segment.
 
 A fixed size read-only segment cache is used to serve read requests. A segment which is not the log end, if requested for Read is loaded into the segment cache. Segments in the segment cache are replaced using a round robin cache updation policy. Segments already loaded in the segment cache are kept in sync with updates for that segment in the flash in real time.
 
-The log layer abstracts I\slash O to the flash object with overloaded functions Write(), Read(), Free() etc for use by the higher layers.\par
+The log layer abstracts I\slash O to the flash object with overloaded functions Write(), Read(), Free() etc for use by the higher layers.
 
 The log layer object is owned by the file layer object which is responsible for initializing at file system mount and destroying the log object and it's dependencies at unmount.
 
@@ -70,19 +70,19 @@ The current limitations of the log layer include, the checkpoint blocks are stor
 
 ### File Layer
 
-The file layer sits on top of the log layer and is directly below the directory layer in our LFS implementation. This layer handles the file abstraction and is represented in the form of an inode. Our implementation of an inode is a structure which stores the file metadata i.e. the inum of the inode, file type and the file size. Along with this, the inode also stores four direct block pointers to the first four blocks of the file that it represents and one indirect block pointer to the block of direct pointers.\par
-Currently the file layer contains functions \texttt{fileRead} and  \texttt{fileWrite} to read and write data of a certain length when the inode of a file is provided. Function \texttt{fileOpen} opens a file for reading. Only the existence of the file is checked in order to open the file. Similarly, \texttt{fileCreate} creates and open a file for file operation. The \texttt{fileRead} and \texttt{fileWrite} functions will be overloaded to \textbf{FUSE} for system calls. In addition to this, other file layer functions like \texttt{fileRelease}, \texttt{fileTruncate}, \texttt{fileFree} and \texttt{fileDelete} are also yet to be handled.
+The file layer sits on top of the log layer and is directly below the directory layer in our LFS implementation. This layer handles the file abstraction and is represented in the form of an inode. Our implementation of an inode is a structure which stores the file metadata i.e. the inum of the inode, file type and the file size. Along with this, the inode also stores four direct block pointers to the first four blocks of the file that it represents and one indirect block pointer to the block of direct pointers.
+Currently the file layer contains functions fileRead and  fileWrite to read and write data of a certain length when the inode of a file is provided. Function fileOpen opens a file for reading. Only the existence of the file is checked in order to open the file. Similarly, fileCreate creates and open a file for file operation. The fileRead and fileWrite functions will be overloaded to FUSE for system calls. In addition to this, other file layer functions like fileRelease, fileTruncate, fileFree and fileDelete are also yet to be handled.
 
 ### Directory Layer
 
-The directory layer is the uppermost layer and implements the directory hierarchy in our LFS design. It communicates with the file layer wherein it calls various functions that are required to initialize the operations on \textbf{FUSE}. So the directory layer implements the structure of the file system. Our current implementation has functions to initialize the directory structure, make a new directory, read from and write to a file (these are just wrappers to the file read and write functions). For the first phase, we aimed for a simplified version of the directory layer.\par
-The inodes for files and directories are stored in a special file called the \textit{ifile}. These are the only places where inodes are stored and they too have inums similar to the inodes. We have designated a specific inum value of 1 for ifiles while the inode of the root directory will have an inode of 2.\par
-In order to adhere to the top-down approach of our LFS implementation, the functions to create a new inode for a file/directory is defined in the file layer. When a new inode is needed, the function \texttt{CreateInode} first checks if there is an empty inode in the ifile. If no empty inodes are found, a new inode is added to the end of the ifile.\par
-Directories are stored as a file as well. They are just an array of (name, inum) pairs. The standard '.' and '..' are not yet supported and multiple links to the same file are also not supported yet. These will be implemented in the second phase. Also, hard links and symbolic links are not supported as well and will be handled in the second phase. \par
+The directory layer is the uppermost layer and implements the directory hierarchy in our LFS design. It communicates with the file layer wherein it calls various functions that are required to initialize the operations on FUSE. So the directory layer implements the structure of the file system. Our current implementation has functions to initialize the directory structure, make a new directory, read from and write to a file (these are just wrappers to the file read and write functions). For the first phase, we aimed for a simplified version of the directory layer.
+The inodes for files and directories are stored in a special file called the \textit{ifile. These are the only places where inodes are stored and they too have inums similar to the inodes. We have designated a specific inum value of 1 for ifiles while the inode of the root directory will have an inode of 2.
+In order to adhere to the top-down approach of our LFS implementation, the functions to create a new inode for a file/directory is defined in the file layer. When a new inode is needed, the function CreateInode first checks if there is an empty inode in the ifile. If no empty inodes are found, a new inode is added to the end of the ifile.
+Directories are stored as a file as well. They are just an array of (name, inum) pairs. The standard '.' and '..' are not yet supported and multiple links to the same file are also not supported yet. These will be implemented in the second phase. Also, hard links and symbolic links are not supported as well and will be handled in the second phase. 
 
 ### Fuse Functions
 
-We support the following \textbf{FUSE} functions:
+We support the following FUSE functions:
 ```
 static struct fuse_operations file_oper = {
 .init = Initialize,
@@ -98,7 +98,7 @@ static struct fuse_operations file_oper = {
 .mkdir = makeDirectory,s
 .rmdir = Directory_Rmdir,
 .readdir = Directory_Readdir,
-.opendir = Opendir, };
+.opendir = Opendir, ;
 ```
 
 ### Segment Cleaner
