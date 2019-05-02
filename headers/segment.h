@@ -3,6 +3,7 @@
 #include <ctime>
 #include "flash.h"
 #include "json.hpp"
+#include <sys/stat.h>
 
 /**
  * log offsets
@@ -104,6 +105,7 @@ class Inode {
         unsigned int hardLinkCount;
         log_address block_pointers[4];
         log_address indirect_block;
+        mode_t mode = S_IRWXU|S_IRWXG|S_IRWXO;
         std::time_t last_modified = std::time(nullptr);
         Inode() = default;
 };

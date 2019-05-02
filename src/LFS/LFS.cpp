@@ -108,7 +108,7 @@ static struct fuse_operations file_oper {
     .symlink = c_SymLink,
     .rename = c_Rename,
     .link = c_HardLink,
-    .chmod = NULL,
+    .chmod = c_Chmod,
     .chown = c_Chown,
     .truncate = c_Truncate,
     .utime = NULL,

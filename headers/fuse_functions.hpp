@@ -46,6 +46,7 @@ void c_Destroy(void *data);
 int c_directoryReaddir(const char *path, void *buf, fuse_fill_dir_t filler, 
 			off_t offset, struct fuse_file_info *fi);
 int c_Statfs(const char* path, struct statvfs *stbuf);
+int c_Chmod(const char* path, mode_t mode);
 
 //stub only functions
 int c_File_Release(const char *path, struct fuse_file_info *fi);

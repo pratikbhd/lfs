@@ -589,10 +589,7 @@ int File::fileGetattr(const char *path, struct stat *stbuf) {
 	}
 
 	// Assign the file permissions
-	// For now, full permissions are given to all user types
-	stbuf->st_mode |= S_IRWXU;
-	stbuf->st_mode |= S_IRWXG;
-	stbuf->st_mode |= S_IRWXO;
+	stbuf->st_mode |= fileInode.mode;
 
 	//Assign last modified time.
 	//stbuf->st_atime = fileInode.last_modified;

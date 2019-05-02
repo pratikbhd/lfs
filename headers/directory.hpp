@@ -115,4 +115,8 @@ class Directory {
  		*/
 		int rename(const char *from, const char *to);
 
+		/**
+		* Set the permission of the file/directory specified by a certain path
+		*/
+		int chmod(const char *path, mode_t mode);  
 };
