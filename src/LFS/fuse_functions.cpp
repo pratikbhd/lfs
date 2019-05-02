@@ -321,6 +321,22 @@ int c_Rename(const char *from, const char *to){
     return -EIO;
 }
 
+int c_Chmod(const char* path, mode_t mode) {
+    Color::Modifier red(Color::FG_RED);
+    Color::Modifier def(Color::FG_DEFAULT);
+    try{
+        std::cout <<"[LFS] chmod called: implemented"<< std::endl;
+        return directory->chmod(path, mode);
+    } catch (const std::exception& e) { 
+        std::cout << red << e.what() << def << std::endl;
+    } catch (const std::string& ex) {
+        std::cout << red << ex << def << std::endl;
+    } catch (...){
+        std::cout << red << "[LFS] Unknown C-level FATAL exception occurred" << def << std::endl;
+    }
+    return -EIO;
+}
+
 int c_Chown(const char *path, uid_t uid, gid_t gid) {
     Color::Modifier red(Color::FG_RED);
     Color::Modifier def(Color::FG_DEFAULT);
