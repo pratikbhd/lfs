@@ -594,8 +594,6 @@ int Directory::rename(const char *from, const char *to) {
 		file.fileDelete(&tino);
 	}
 
-	// Now rename ino
-	// TODO: Inefficient!! Unacceptable!!
 	deleteEntry(&fDir, &ino, fName);
 
 	std::cout << "Rename: DeleteEntry finished.\n" << std::endl;
@@ -604,5 +602,24 @@ int Directory::rename(const char *from, const char *to) {
 	} else {
 		file.NewEntry(&tDir, &ino, tName);
 	}
+	return 0;
+}
+
+int Directory::chmod(const char *path, mode_t mode) {
+
+	Inode ino;
+
+	// First, check if the path exists
+	int err = file.ReadPath(path, &ino);
+	if (err == -ENOENT || err == ENOENT) {
+		std::cout << "Chmod: The path " << path << " does not exist" << std::endl;
+		return err;
+	}
+
+	mode_t newMode = (ino.mode & S_IFMT) | (mode & ~S_IFMT);
+	ino.mode = newMode;
+	
+	file.writeInode(&ino);
+
 	return 0;
 }

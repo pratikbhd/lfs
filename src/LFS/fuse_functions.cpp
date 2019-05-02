@@ -91,6 +91,11 @@ int c_access(const char* path, int mask){
     return directory->Exists(path);
 }
 
+int c_Chmod(const char* path, mode_t mode) {
+    std::cout <<"[LFS] chmod called: implemented"<< std::endl;
+    return directory->chmod(path, mode);
+}
+
 int c_Chown(const char *path, uid_t uid, gid_t gid) {
     Color::Modifier red(Color::FG_RED);
     Color::Modifier def(Color::FG_DEFAULT);
