@@ -71,34 +71,45 @@ The current limitations of the log layer include, the checkpoint blocks are stor
 ### File Layer
 
 The file layer sits on top of the log layer and is directly below the directory layer in our LFS implementation. This layer handles the file abstraction and is represented in the form of an inode. Our implementation of an inode is a structure which stores the file metadata i.e. the inum of the inode, file type and the file size. Along with this, the inode also stores four direct block pointers to the first four blocks of the file that it represents and one indirect block pointer to the block of direct pointers.
-Currently the file layer contains functions fileRead and  fileWrite to read and write data of a certain length when the inode of a file is provided. Function fileOpen opens a file for reading. Only the existence of the file is checked in order to open the file. Similarly, fileCreate creates and open a file for file operation. The fileRead and fileWrite functions will be overloaded to FUSE for system calls. In addition to this, other file layer functions like fileRelease, fileTruncate, fileFree and fileDelete are also yet to be handled.
+
+Currently the file layer contains functions fileRead and  fileWrite to read and write data of a certain length when the inode of a file is provided. Function fileOpen opens a file for reading. Only the existence of the file is checked in order to open the file. Similarly, fileCreate creates and open a file for file operation. The fileRead and fileWrite functions will be overloaded to FUSE for system calls. In addition to this, other file layer functions like fileRelease, fileTruncate, fileFree and fileDelete are also handled.
+
+We have implemented support for Hardlinks, softlinks and basic file permissions.
 
 ### Directory Layer
 
-The directory layer is the uppermost layer and implements the directory hierarchy in our LFS design. It communicates with the file layer wherein it calls various functions that are required to initialize the operations on FUSE. So the directory layer implements the structure of the file system. Our current implementation has functions to initialize the directory structure, make a new directory, read from and write to a file (these are just wrappers to the file read and write functions). For the first phase, we aimed for a simplified version of the directory layer.
-The inodes for files and directories are stored in a special file called the \textit{ifile. These are the only places where inodes are stored and they too have inums similar to the inodes. We have designated a specific inum value of 1 for ifiles while the inode of the root directory will have an inode of 2.
+The directory layer is the uppermost layer and implements the directory hierarchy in our LFS design. It communicates with the file layer wherein it calls various functions that are required to initialize the operations on FUSE. So the directory layer implements the structure of the file system. Our current implementation has functions to initialize the directory structure, make a new directory, read from and write to a file (these are just wrappers to the file read and write functions).
+
+The inodes for files and directories are stored in a special file called the ifile. These are the only places where inodes are stored and they too have inums similar to the inodes. We have designated a specific inum value of 1 for ifiles while the inode of the root directory will have an inode of 2.
 In order to adhere to the top-down approach of our LFS implementation, the functions to create a new inode for a file/directory is defined in the file layer. When a new inode is needed, the function CreateInode first checks if there is an empty inode in the ifile. If no empty inodes are found, a new inode is added to the end of the ifile.
-Directories are stored as a file as well. They are just an array of (name, inum) pairs. The standard '.' and '..' are not yet supported and multiple links to the same file are also not supported yet. These will be implemented in the second phase. Also, hard links and symbolic links are not supported as well and will be handled in the second phase. 
+
+Directories are stored as a file as well. They are just an array of (name, inum) pairs.
 
 ### Fuse Functions
 
 We support the following FUSE functions:
+
 ```
-static struct fuse_operations file_oper = {
-.init = Initialize,
-.destroy = Destroy,
-.statfs = Stats,
-.create = Create,
-.open = fileOpen,
-.read = Read,
-.write = Write,
-.truncate = Truncate,
-.rename = Rename
-.getattr = fileGetattr,
-.mkdir = makeDirectory,s
-.rmdir = Directory_Rmdir,
-.readdir = Directory_Readdir,
-.opendir = Opendir, ;
+    .getattr = c_fileGetattr,
+    .readlink = c_ReadLink,
+    .mkdir = c_makeDirectory,
+    .unlink = c_Unlink,
+    .rmdir = c_Rmdir,
+    .symlink = c_SymLink,
+    .rename = c_Rename,
+    .link = c_HardLink,
+    .chmod = c_chmod,
+    .chown = c_Chown,
+    .truncate = c_Truncate,
+    .open = c_fileOpen,
+    .read = c_directoryRead,
+    .write = c_directoryWrite,
+    .statfs = c_Statfs,
+    .readdir = c_directoryReaddir,
+    .init = c_Initialize,
+    .destroy = c_Destroy,
+    .access = c_access,
+    .create = c_fileCreate
 ```
 
 ### Segment Cleaner
