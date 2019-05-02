@@ -84,6 +84,7 @@ int File::fileWrite(Inode *inode, int offset, int length, const void *buffer) {
         std::cout << "[File] :" << data[idx] << std::endl;
     }
 
+	(*inode).last_modified = std::time(nullptr);
 	// Write entire file	
 	write(inode,
 			offset / (log.super_block.bytesPerBlock),
@@ -592,6 +593,11 @@ int File::fileGetattr(const char *path, struct stat *stbuf) {
 	stbuf->st_mode |= S_IRWXU;
 	stbuf->st_mode |= S_IRWXG;
 	stbuf->st_mode |= S_IRWXO;
+
+	//Assign last modified time.
+	//stbuf->st_atime = fileInode.last_modified;
+	stbuf->st_mtime = fileInode.last_modified;
+	//stbuf->st_ctime = fileInode.last_modified;
 
 	std::cout << "[File] Leaving getAttr" << std::endl;
 	return 0;
