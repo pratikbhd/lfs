@@ -58,11 +58,11 @@ This design document describes our implementation of the Log Structured File Sys
 
 The log layer encapsulated by a Log object directly manages the flash device and acts as an interface between the flash device and higher up layers of the LFS. The flash layer is made up of a predefined number of sectors, fixed size of which are collectively considered to form a block. The log layer treats a collection of blocks in the flash layer as a segment. Read-write to and from the flash layer is executed in units of segments. The log layer further supports accessing blocks within a segment by a log address comprising of a segment number and block number. 
 
-The Log object holds the last segment to which data is written to in an in-memory class member Segment object called log\_end. The segment object encapsulates functionality at the segment level such as Load, Flush and Erase segment. The log end segment in the log object is flushed to cache once a checkpoint is hit or if write operations exceed the segment size or if the file layer requests for a new segment.
+The Log object holds the last segment to which data is written to in an in-memory class member Segment object called log_end. The segment object encapsulates functionality at the segment level such as Load, Flush and Erase segment. The log end segment in the log object is flushed to cache once a checkpoint is hit or if write operations exceed the segment size or if the file layer requests for a new segment.
 
 A fixed size read-only segment cache is used to serve read requests. A segment which is not the log end, if requested for Read is loaded into the segment cache. Segments in the segment cache are replaced using a round robin cache updation policy. Segments already loaded in the segment cache are kept in sync with updates for that segment in the flash in real time.
 
-The log layer abstracts I\slash O to the flash object with overloaded functions Write(), Read(), Free() etc for use by the higher layers.
+The log layer abstracts I\O to the flash object with overloaded functions Write(), Read(), Free() etc for use by the higher layers.
 
 The log layer object is owned by the file layer object which is responsible for initializing at file system mount and destroying the log object and it's dependencies at unmount.
 
