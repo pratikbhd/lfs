@@ -105,6 +105,12 @@ static struct fuse_operations file_oper = {
 
 We have implemented a segment cleaner that uses a cost-benefit ratio to pick candidate segments, cleaning them by moving occupied blocks to the end of the log.
 
+### Crash Recovery
+
+Crash recovery based on checkpoints is implemented. The last updated checkpoint from the two checkpoints available is used to obtain the log end.
+
+The project does not implement roll-forward recovery.
+
 ### Utilities
 
 We implemented two utilities in C++, mklfs and lfsck which are described below.
