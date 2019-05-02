@@ -1,12 +1,3 @@
-# TODO
-
-* Crash recovery
-* File Layer
-    * permissions
-    * include file modified time in inode and getattr
-    * FATAL BUGS:
-        * truncate larger test case fails in lfstest.py
-
 # Log Structured File System in C++
 
 This repository holds an implementation of a log structured file system that is mounted on a flash device and uses the FUSE user level file system interface to intercept file system calls to the mount point in the linux kernel to the mounted flash device.
@@ -18,16 +9,19 @@ We tested this in Ubuntu 18.04 using Fuse v2.9.9 and C++14.
 To build lfs, mklfs and lfsck, we use g++ to compile and link our source code. Run the following commands to create the three binaries from the root directory of the github repository.
 
 ```
+LFS:
+g++ -g -o lfs -I headers src/LFS/LFS.cpp src/LFS/fuse_functions.cpp src/dir/directory.cpp src/file/cleaner.cpp src/file/file.cpp src/file/file_private.cpp src/log/log.cpp src/log/log_helper.cpp src/log/segment.cpp src/log/superblock.cpp src/log/checkpoint.cpp src/flash/flash.c `pkg-config --libs --cflags fuse`
+
+# utilities:
+
 mklfs:
-g++ -g -o mklfs -I headers src/flash/mklfs.cpp src/log/log.cpp src/log/log_private.cpp src/log/segment.cpp src/log/superblock.cpp src/log/checkpoint.cpp src/flash/flash.c
+g++ -g -o mklfs -I headers src/flash/mklfs.cpp src/log/log.cpp src/log/log_helper.cpp src/log/segment.cpp src/log/superblock.cpp src/log/checkpoint.cpp src/flash/flash.c
 
 lfsck: 
-g++ -g -o lfsck -I headers src/flash/lfsck.cpp 
-src/log/log.cpp src/log/log_private.cpp src/log/segment.cpp 
+g++ -g -o lfsck -I headers src/flash/lfsck.cpp src/file/cleaner.cpp 
+src/file/file.cpp src/file/file_private.cpp
+src/log/log.cpp src/log/log_helper.cpp src/log/segment.cpp 
 src/log/superblock.cpp src/log/checkpoint.cpp src/flash/flash.c
-
-LFS:
-g++ -g -o lfs -I headers src/LFS/LFS.cpp src/LFS/fuse_functions.cpp src/dir/directory.cpp src/file/file.cpp src/log/log.cpp src/log/log_private.cpp src/log/segment.cpp src/log/superblock.cpp src/log/checkpoint.cpp src/flash/flash.c `pkg-config --libs --cflags fuse`
 ```
 
 ### Run lfstest.py
@@ -52,7 +46,7 @@ You can also pass in arguments to set the segment count, blocks per segment, sec
 Next run the following binary:
 
 ```
-./LFS <flash_file> <mount_point_for_fuse> <checkpoint_interval>
+./lfs <flash_file> <mount_point_for_fuse> <checkpoint_interval>
 ```
 
 
@@ -66,11 +60,13 @@ The log layer encapsulated by a Log object directly manages the flash device and
 
 The Log object holds the last segment to which data is written to in an in-memory class member Segment object called log\_end. The segment object encapsulates functionality at the segment level such as Load, Flush and Erase segment. The log end segment in the log object is flushed to cache once a checkpoint is hit or if write operations exceed the segment size or if the file layer requests for a new segment.\par
 
-The log layer abstracts I\slash O to the flash object with overloaded functions Write(), Read(), UpdateInode() and GetSuperblock() for use by the higher layers.\par
+A fixed size read-only segment cache is used to serve read requests. A segment which is not the log end, if requested for Read is loaded into the segment cache. Segments in the segment cache are replaced using a round robin cache updation policy. Segments already loaded in the segment cache are kept in sync with updates for that segment in the flash in real time.
+
+The log layer abstracts I\slash O to the flash object with overloaded functions Write(), Read(), Free() etc for use by the higher layers.\par
 
 The log layer object is owned by the file layer object which is responsible for initializing at file system mount and destroying the log object and it's dependencies at unmount.
 
-The current limitations of the log layer include, the checkpoint blocks are stored in predetermined locations, read segments are not cached in the log layer and block wear is not handled by the log layer. All other functionalities that the log layer is responsible for are complete.
+The current limitations of the log layer include, the checkpoint blocks are stored in predetermined locations. All other functionalities that the log layer is responsible for are complete.
 
 ### File Layer
 
@@ -86,7 +82,7 @@ Directories are stored as a file as well. They are just an array of (name, inum)
 
 ### Fuse Functions
 
-At the moment, we are still in the process of implementing \textbf{FUSE} to our prototype LFS design and expect to create a complete end-to-end system working in the next few days. Upon successful integration, we will start with the following \textbf{FUSE} will be supported.\functions
+We support the following \textbf{FUSE} functions:
 ```
 static struct fuse_operations file_oper = {
 .init = Initialize,
@@ -105,7 +101,10 @@ static struct fuse_operations file_oper = {
 .opendir = Opendir, };
 ```
 
-In addition to this, support for other \textbf{FUSE} functions to get stats, unlink, read hardlinks and symlink, remove directory, etc 
+### Segment Cleaner
+
+We have implemented a segment cleaner that uses a cost-benefit ratio to pick candidate segments, cleaning them by moving occupied blocks to the end of the log.
+
 ### Utilities
 
 We implemented two utilities in C++, mklfs and lfsck which are described below.
@@ -123,8 +122,5 @@ lfsck is a C++ utility that we wrote to help with debugging and resolving severa
 The lfsck also has a python component that parses the json to python objects and runs automated checks to verify the metadata saved in the filesystem data structures. We plan to extend checks run by lfsck by phase 2. We ran mostly basic checks during initial stages of log layer development, and have relied mostly on the raw json more during phase 1 because of better flexibility in designing our file system structures.
 
 ### Contributors
-- Rahul Roy Mattam
-- Pratik Bhandari
-
-
-g++ -std=c++14 -g -Og `pkg-config fuse --cflags --libs` -o LFS -I headers src/LFS/LFS.cpp src/dir/directory.cpp src/file/file.cpp src/log/log.cpp src/log/log_private.cpp src/log/segment.cpp src/log/superblock.cpp src/log/checkpoint.cpp src/flash/flash.c
+- Rahul Roy Mattam = 60% features
+- Pratik Bhandari = 40% features
