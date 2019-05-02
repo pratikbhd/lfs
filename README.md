@@ -110,7 +110,13 @@ static struct fuse_operations file_oper = {
 .mkdir = makeDirectory,s
 .rmdir = Directory_Rmdir,
 .readdir = Directory_Readdir,
-.opendir = Opendir, };
+.opendir = Opendir, 
+.readlink = ReadLink,
+.unlink = Unlink,
+.symlink = Symlink,
+.link = hardlink,
+.rename = Rename,
+.chmod = Chmod };
 ```
 
 In addition to this, support for other \textbf{FUSE} functions to get stats, unlink, read hardlinks and symlink, remove directory, etc 
