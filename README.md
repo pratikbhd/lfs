@@ -137,7 +137,3 @@ We reserved the first block of every segment to store the segment summary table 
 lfsck is a C++ utility that we wrote to help with debugging and resolving several issues we faced and proved valuable during development. The lfsck extracts relevant file system data structures from the flash using the log layer and dumps a json file representative of the objects present in the file system.
 
 The lfsck also has a python component that parses the json to python objects and runs automated checks to verify the metadata saved in the filesystem data structures. We plan to extend checks run by lfsck by phase 2. We ran mostly basic checks during initial stages of log layer development, and have relied mostly on the raw json more during phase 1 because of better flexibility in designing our file system structures.
-
-### Contributors
-- Rahul Roy Mattam = 60% features
-- Pratik Bhandari = 40% features
